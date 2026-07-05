@@ -1,4 +1,4 @@
-# HRMicro 🚀
+# MS_HR 🚀
 
 Sistema de gestão de RH desenvolvido com arquitetura de microsserviços enterprise, utilizando Spring Boot 3.4.5, JWT, Docker e Spring Cloud.
 
@@ -6,7 +6,7 @@ Sistema de gestão de RH desenvolvido com arquitetura de microsserviços enterpr
 
 ## 📋 Sobre o Projeto
 
-O HRMicro é um sistema backend de RH construído com microsserviços independentes que se comunicam entre si via API Gateway, com autenticação JWT, descoberta de serviços via Eureka e configurações centralizadas no GitHub.
+O HR é um sistema backend de RH construído com microsserviços independentes que se comunicam entre si via API Gateway, com autenticação JWT, descoberta de serviços via Eureka e configurações centralizadas no GitHub.
 
 O projeto foi desenvolvido com foco em boas práticas de mercado: DTOs, tratamento global de exceções, Lombok, Circuit Breaker e containerização completa com Docker.
 
