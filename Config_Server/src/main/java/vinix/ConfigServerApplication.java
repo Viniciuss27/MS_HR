@@ -1,19 +1,16 @@
 package vinix;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.config.server.EnableConfigServer;
 
 @SpringBootApplication
 @EnableConfigServer
-public class ConfigServerApplication implements CommandLineRunner{
+public class ConfigServerApplication /*implements CommandLineRunner*/{
 
-	@Value("${spring.cloud.config.server.git.password}")
-	String password;
+	/*@Value("${GIT_PASSWORD}")
+	String pass;
 	
-	@Value("${spring.cloud.config.server.git.username}")
+	@Value("${GIT_USERNAME}")
 	String name;
 	
 	public static void main(String[] args) {
@@ -22,9 +19,9 @@ public class ConfigServerApplication implements CommandLineRunner{
 
 	@Override
 	public void run(String... args) throws Exception {
-		/*System.out.println("TOKEN: " + pass);
-		System.out.println("USERNAME: " + name);*/
+		System.out.println("TOKEN: " + pass != null && !pass.isBlank()));
+		System.out.println("USERNAME: " + username != null && !username.isBlank()));
 		
-	}
+	}*/
 
 }

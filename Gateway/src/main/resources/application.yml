@@ -1,55 +1,8 @@
 spring:
   application:
-    name: hr-api-gateway
-
-  cloud:
-    gateway:
-      discovery:
-        locator:
-          enabled: false   # evita conflito com rotas manuais
-
-      routes:
-        # Worker Service
-        - id: hr-worker
-          uri: lb://hr-worker
-          predicates:
-            - Path=/workers/**   
-          filters:
-            - StripPrefix=0
-
-        # Payroll Service
-        - id: hr-payroll
-          uri: lb://hr-payroll
-          predicates:
-            - Path=/payments/**  
-          filters:
-            - StripPrefix=0
-
-        # User Service
-        - id: hr-user
-          uri: lb://hr-user
-          predicates:
-            - Path=/users/** 
-          filters:
-            - StripPrefix=0
-
-        # OAuth Service
-        - id: hr-oauth
-          uri: lb://hr-oauth
-          predicates:
-            - Path=/oauth/** 
-          filters:
-            - StripPrefix=0
-            - RemoveRequestHeader=Cookie
-
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka 
-
-server:
-  port: 8765
-
-security:
-  jwt:
-    secret: MY-SECRET-KEY-MUST-BE-256-BITS-LONG!!
+    name: gateway
+    
+  config:
+    import:
+      - optional:file:.env[.properties]
+      - optional:configserver:${SPRING_CLOUD_CONFIG_URI}

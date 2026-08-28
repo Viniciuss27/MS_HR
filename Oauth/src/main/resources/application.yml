@@ -1,39 +1,8 @@
 spring:
   application:
-    name: hr-oauth
-
-feign:
-  circuitbreaker:
-    enabled: true
-
-resilience4j:
-  circuitbreaker:
-    instances:
-      hr-user:
-        sliding-window-size: 5
-        failure-rate-threshold: 50
-        wait-duration-in-open-state: 10s
-
-server:
-  port: ${port:0}
-
-eureka:
-  instance:
-    instance-id: ${spring.application.name}:${random.value}
-    prefer-ip-address: true
-
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka
-    register-with-eureka: true
-    fetch-registry: true
-
-security:
-  jwt:
-    secret: MY-SECRET-KEY-MUST-BE-256-BITS-LONG!!
-    expiration: 86400000 #token expira em 1 dia, em milesegundos 
-
-  oauth2:
-    client:
-      client-id: myappname123 
-      client-secret: myappsecret123
+    name: auth
+    
+  config:
+    import:
+      - optional:file:.env[.properties]
+      - optional:configserver:${SPRING_CLOUD_CONFIG_URI}

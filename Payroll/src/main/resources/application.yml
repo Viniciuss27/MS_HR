@@ -1,36 +1,8 @@
 spring:
   application:
-    name: hr-payroll
+    name: payroll
+    
   config:
-    import: optional:configserver:http://localhost:8888  #configs do Config Server
-
-  cloud:
-    openfeign:
-      circuitbreaker:
-        enabled: true
-
-server:
-  port: ${port:0}  
-
-eureka:
-  instance:
-    instance-id: ${spring.application.name}:${random.value}
-    prefer-ip-address: true
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka
-
-resilience4j:
-  circuitbreaker:
-    instances:
-      hr-worker:
-        sliding-window-size: 10
-        minimum-number-of-calls: 2
-        failure-rate-threshold: 50
-        wait-duration-in-open-state: 5s
-
-feign:
-  client:
-    config:
-      default:
-        decode404: true
+    import:
+      - optional:file:.env[.properties]
+      - optional:configserver:${SPRING_CLOUD_CONFIG_URI}

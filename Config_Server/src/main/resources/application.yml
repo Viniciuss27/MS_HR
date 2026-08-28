@@ -1,9 +1,9 @@
 spring:
   application:
-    name: hr-config-server
+    name: config_server
 
   config:
-    import: optional:file:.env[.properties]  # para buscar na .env
+    import: optional:file:.env[.properties]
 
   cloud:
     config:
@@ -11,8 +11,8 @@ spring:
         git:
           uri: https://github.com/viniciuss27/MS_Config
           default-label: main
-          username: ${GIT_USERNAME}   # variável da .env
-          password: ${GIT_PASSWORD}   # token do GitHub na .env
+          username: ${GIT_USERNAME}
+          password: ${GIT_PASSWORD}
 
 server:
   port: 8888
