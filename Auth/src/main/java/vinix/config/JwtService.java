@@ -4,8 +4,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.List;
 
 import javax.crypto.SecretKey;
 
@@ -28,14 +27,18 @@ public class JwtService {
         this.expiration = expiration;
     }
 
-    public String generateToken(UserDTO user, Set<RoleDTO> roles) {
+    public String generateToken(String email, List<String> roles) {
         Instant now = Instant.now();
         return Jwts.builder()
-            .subject(user.getEmail())
-            .claim("roles", roles.stream().map(RoleDTO::getRoleName).collect(Collectors.toList()))
+            .subject(email)
+            .claim("roles", roles)
             .issuedAt(Date.from(now))
             .expiration(Date.from(now.plus(expiration, ChronoUnit.MILLIS)))
             .signWith(secretKey)
             .compact();
+    }
+
+    public Long getExpiration() {
+        return expiration;
     }
 }
