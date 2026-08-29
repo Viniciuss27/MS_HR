@@ -84,12 +84,6 @@
       <artifactId>flyway-database-postgresql</artifactId>
     </dependency>
 
-    <!-- Feign -->
-    <dependency>
-      <groupId>org.springframework.cloud</groupId>
-      <artifactId>spring-cloud-starter-openfeign</artifactId>
-    </dependency>
-
     <!--Web-->
     <dependency>
       <groupId>org.springframework.boot</groupId>
