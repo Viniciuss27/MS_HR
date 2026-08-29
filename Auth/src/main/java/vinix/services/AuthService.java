@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import vinix.config.JwtService;
-import vinix.dto.UserDTO;
 import vinix.feignClient.UserFeignClient;
 
 @Service

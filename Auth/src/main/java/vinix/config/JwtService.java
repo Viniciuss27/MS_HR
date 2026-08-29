@@ -10,16 +10,12 @@ import java.util.stream.Collectors;
 import javax.crypto.SecretKey;
 
 import io.jsonwebtoken.security.Keys;
-import jakarta.annotation.PostConstruct;
-import lombok.Getter;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Jwts;
-import vinix.dto.RoleDTO;
-import vinix.dto.UserDTO;
+
 @Component
 public class JwtService {
 

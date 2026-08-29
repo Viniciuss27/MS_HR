@@ -3,8 +3,6 @@ package vinix.resources;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import vinix.dto.TokenResponse;
-import vinix.dto.UserDTO;
 import vinix.services.AuthService;
 
 @RestController
