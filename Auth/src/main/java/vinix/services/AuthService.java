@@ -8,7 +8,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import vinix.config.JwtUtil;
+import vinix.config.JwtService;
 import vinix.dto.UserDTO;
 import vinix.feignClient.UserFeignClient;
 
@@ -17,7 +17,7 @@ public class AuthService implements UserDetailsService {
 
     private final UserFeignClient userFeignClient;
     private final BCryptPasswordEncoder passwordEncoder;
-    private final JwtUtil jwtUtil;
+    private final JwtService jwtUtil;
 
     @Value("${security.oauth2.client.client-id}")
     private String clientId;
@@ -27,7 +27,7 @@ public class AuthService implements UserDetailsService {
 
     public AuthService(UserFeignClient userFeignClient,
                        BCryptPasswordEncoder passwordEncoder,
-                       JwtUtil jwtUtil) {
+                       JwtService jwtUtil) {
         this.userFeignClient = userFeignClient;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;

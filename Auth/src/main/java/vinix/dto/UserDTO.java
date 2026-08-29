@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @NoArgsConstructor
-@Getter // sem Setter por causa dos roles
+@Getter
 public class UserDTO implements Serializable, UserDetails{
 	private static final long serialVersionUID = 1L;
 	
@@ -32,10 +32,8 @@ public class UserDTO implements Serializable, UserDetails{
 	
 	@Setter
 	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-	//recebe do JSON e não aparece na resposta
 	private String password;
-	
-	// sem @Setter, só quero com Getter
+
 	private Set<RoleDTO> roles = new HashSet<>();
 	
 	public UserDTO(Long id, String name, String email, String password) {
@@ -48,14 +46,12 @@ public class UserDTO implements Serializable, UserDetails{
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-		return roles.stream() // converte para stream 
+		return roles.stream()
 				.map(x -> new SimpleGrantedAuthority 
-				// cada stream é convertido para SimpleGrantedAuthority
 				(x.getRoleName()))
-				// consegue pegar por ser uma implementação do GrantedAuthority 
 				.collect(Collectors.toList());
 		
-		/*retorna as roles convertidas para o Spring Security*/
+
 	}
 
 	@Override
