@@ -28,7 +28,8 @@ public class SecurityConfig {
             "/auth/login",
             "/v3/api-docs/**",
             "/swagger-ui/**",
-            "/docs"
+            "/docs",
+            "/actuator/health"
     };
 
     @Bean
