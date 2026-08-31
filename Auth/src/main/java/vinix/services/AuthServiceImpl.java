@@ -26,49 +26,49 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
-	private final AuthenticationManager autenticador;
-	private final UserRepository userRepository;
-	private final RoleRepository roleRepository;
-	private final PasswordEncoder password;
-	private final UserMapper mapper;
-	private final JwtService jwtService;
+			private final AuthenticationManager autenticador;
+			private final UserRepository userRepository;
+			private final RoleRepository roleRepository;
+			private final PasswordEncoder password;
+			private final UserMapper mapper;
+			private final JwtService jwtService;
 
-	@Override
-	public LoginResponseDTO login(LoginRequestDTO dto) {
-		autenticador.authenticate(
-				new UsernamePasswordAuthenticationToken(dto.email(),
-						dto.password()));
+			@Override
+			public LoginResponseDTO login(LoginRequestDTO dto) {
+						autenticador.authenticate(
+								new UsernamePasswordAuthenticationToken(dto.email(),
+										dto.password()));
 
-		User user = userRepository.findByEmail(dto.email())
-				.orElseThrow(() -> new ResourceNotFoundException(
-						"Usuário não encontrado"));
+						User user = userRepository.findByEmail(dto.email())
+								.orElseThrow(() -> new ResourceNotFoundException(
+										"Usuário não encontrado"));
 
-		List<String> roles = user.getRoles().stream()
-				.map(Role::getRoleName).toList();
+						List<String> roles = user.getRoles().stream()
+								.map(Role::getRoleName).toList();
 
-		String token = jwtService.generateToken(dto.email(), roles);
+						String token = jwtService.generateToken(dto.email(), roles);
 
-		return new LoginResponseDTO(token, "Bearer",
-				jwtService.getExpiration());
-	}
+						return new LoginResponseDTO(token, "Bearer",
+								jwtService.getExpiration());
+			}
 
-	@Override
-	@Transactional
-	@PreAuthorize("hasAnyRole('ADMIN', 'HR')")
-	public UserResponseDTO register(RegisterRequestDTO dto) {
-		if (userRepository.findByEmail(dto.email()).isPresent()) {
-			throw new DuplicateEmailException(
-					"Já existe uma conta cadastrada com o email " + dto.email());
-		}
+			@Override
+			@Transactional
+			@PreAuthorize("hasAnyRole('ADMIN', 'HR')")
+			public UserResponseDTO register(RegisterRequestDTO dto) {
+					if (userRepository.findByEmail(dto.email()).isPresent()) {
+						throw new DuplicateEmailException(
+								"Já existe uma conta cadastrada com o email " + dto.email());
+					}
 
-		Role role = roleRepository.findByRoleName("USER")
-				.orElseThrow(() -> new ResourceNotFoundException(
-						"Role padrão não encontrada: USER"));
+					Role role = roleRepository.findByRoleName("USER")
+							.orElseThrow(() -> new ResourceNotFoundException(
+									"Role padrão não encontrada: USER"));
 
-		User user = mapper.toEntity(dto);
-		user.setPassword(password.encode(dto.password()));
-		user.getRoles().add(role);
+					User user = mapper.toEntity(dto);
+					user.setPassword(password.encode(dto.password()));
+					user.getRoles().add(role);
 
-		return mapper.toResponseDTO(userRepository.save(user));
-	}
+					return mapper.toResponseDTO(userRepository.save(user));
+			}
 }

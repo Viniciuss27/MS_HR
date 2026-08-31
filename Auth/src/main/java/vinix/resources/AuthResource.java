@@ -1,45 +1,39 @@
 package vinix.resources;
 
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import vinix.dto.request.LoginRequestDTO;
+import vinix.dto.request.RegisterRequestDTO;
+import vinix.dto.response.LoginResponseDTO;
+import vinix.dto.response.UserResponseDTO;
 import vinix.services.AuthService;
 
+
+import java.net.URI;
+
+@RequiredArgsConstructor
 @RestController
-@RequestMapping(value = "/oauth")
+@RequestMapping(value = "/auth")
 public class AuthResource {
 
-    private final AuthService authService;
-    //injeção por construtor (boa prática, evita @Autowired em campo)
+    private final AuthService service;
 
-    public AuthResource(AuthService authService) {
-        this.authService = authService;
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponseDTO> login(@RequestBody @Valid LoginRequestDTO dto) {
+        return ResponseEntity.ok(service.login(dto));
     }
 
-    //Responsável por autenticar e gerar o token JWT
-    @PostMapping(value = "/token")
-    public ResponseEntity<TokenResponse> login(
-            @RequestHeader("client-id") String clientId,
-            @RequestHeader("client-secret") String clientSecret,
-            @RequestParam String email, 
-            @RequestParam String password) {
-
-        String token = authService.authenticate(clientId, clientSecret, email, password);
-
-        //retorna no padrão OAuth-like
-        return ResponseEntity.ok(
-                new TokenResponse(token, "bearer")
-        );
-    }
-
-    //Opcional para teste de comunicação com o user-service
-    //controller não acessa Feign direto, usa o service
-    @GetMapping(value = "/user")
-    public ResponseEntity<UserDTO> getUser(@RequestParam String email) {
-
-        //service faz a busca e tratamento de erro (404 se não encontrar)
-        UserDTO user = authService.findEmail(email);
-
-        return ResponseEntity.ok(user);
+    @PostMapping("/register")
+    public ResponseEntity<UserResponseDTO> register(@RequestBody @Valid RegisterRequestDTO dto) {
+        UserResponseDTO response = service.register(dto);
+        URI uri = ServletUriComponentsBuilder
+            .fromCurrentRequest().path("/{id}")
+            .buildAndExpand(response.id())
+            .toUri();
+        return ResponseEntity.created(uri).body(response);
     }
 }
