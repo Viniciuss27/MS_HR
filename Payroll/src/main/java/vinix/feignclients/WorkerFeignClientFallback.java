@@ -3,8 +3,6 @@ package vinix.feignclients;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
-import vinix.entities.Worker;
-
 @Component
 public class WorkerFeignClientFallback implements WorkerFeignClient{
 

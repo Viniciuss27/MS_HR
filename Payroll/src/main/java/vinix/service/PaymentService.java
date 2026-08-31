@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import vinix.entities.Payment;
-import vinix.entities.Worker;
 import vinix.feignclients.WorkerFeignClient;
 import vinix.service.exceptions.ResourceNotFoundException;
 
