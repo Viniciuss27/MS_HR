@@ -4,14 +4,15 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import reactor.core.scheduler.Scheduler.Worker;
 
 @FeignClient(
-	    name = "hr-worker",
-	    path = "/workers",
-	    fallback = WorkerFeignClientFallback.class
+	    name = "employeer",
+	    path = "/emplyeers",
+	    fallbackFactory = EmployeerFeignClientFallbackFactory.class
 	)
-	public interface WorkerFeignClient {
+	public interface EmployeerFeignClient {
 
 	    @GetMapping(value = "/{id}")
-	    ResponseEntity<Worker> findById(@PathVariable("id") Long id);
+	    ResponseEntity<EmployeerDTO> findById(@PathVariable Long id);
 	}
