@@ -7,16 +7,25 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import reactor.core.scheduler.Scheduler.Worker;
 
+import java.util.List;
+
 @Component
 @Slf4j
 public class EmployeerFeignClientFallbackFactory implements FallbackFactory<EmployeerFeignClient> {
 
+	public EmployeerFeignClient create(Throwable cause) {
+		return new EmployeerFeignClient() {
 			@Override
-			public EmployeerFeignClient create(Throwable cause) {
-				  return (Long id) -> {
-							log.error("Não foi possivel buscar o ID: {}, motivo: {}",
-									id, cause.getMessage());
-							return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
-				  };
+			public ResponseEntity<EmployeerDTO> findById(Long id) {
+				log.error("Não foi possível buscar o ID: {}, motivo: {}", id, cause.getMessage());
+				return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
 			}
+
+			@Override
+			public ResponseEntity<List<EmployeerDTO>> findAllActive() {
+				log.error("Não foi possível buscar a lista de funcionários, motivo: {}", cause.getMessage());
+				return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+			}
+		};
+	}
 }

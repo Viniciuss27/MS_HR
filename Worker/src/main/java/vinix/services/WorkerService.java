@@ -17,6 +17,9 @@ import vinix.services.exceptions.ResourceNotFoundException;
 @Service
 public class WorkerService {
 
+	// TODO: endpoint GET /workers (sem {id}) retornando lista de funcionários ativos,
+	// usado pelo Payroll.launchPayroll() para gerar a folha do mês em lote
+
 	@Autowired
 	private WorkerRepository repository;
 	
