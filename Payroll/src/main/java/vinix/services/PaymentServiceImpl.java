@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vinix.dto.request.PaymentRequestDTO;
@@ -11,8 +12,8 @@ import vinix.dto.response.PaymentResponseDTO;
 import vinix.entities.Payment;
 import vinix.entities.PaymentStatus;
 import vinix.entities.PaymentType;
-import vinix.feignclients.EmployeerDTO;
-import vinix.feignclients.EmployeerFeignClient;
+import vinix.feign.EmployeerDTO;
+import vinix.feign.EmployeerFeignClient;
 import vinix.mapper.PaymentMapper;
 import vinix.repositories.PaymentRepository;
 import vinix.services.exceptions.ResourceNotFoundException;
@@ -38,7 +39,7 @@ public class PaymentServiceImpl implements PaymentService {
   }
 
   @Override @Transactional
-  //@PreAuthorize("hasAnyRole('ADMIN', 'HR')")
+  @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
   public List<PaymentResponseDTO> launchPayroll() {
     ResponseEntity<List<EmployeerDTO>> response = feign.findAllActive();
 
@@ -77,7 +78,7 @@ public class PaymentServiceImpl implements PaymentService {
   }
 
   @Override @Transactional
-  //@PreAuthorize("hasAnyRole('ADMIN', 'HR')")
+  @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
   public PaymentResponseDTO create(PaymentRequestDTO dto) {
     Payment payment = montarPagamento(dto.workerId(), dto.daysWorked(), dto.referenceDate(), PaymentType.SALARY);
     payment = repository.save(payment);
@@ -88,7 +89,7 @@ public class PaymentServiceImpl implements PaymentService {
   }
 
   @Override @Transactional
-  //@PreAuthorize("hasAnyRole('ADMIN', 'HR')")
+  @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
   public PaymentResponseDTO calculate13Salary(PaymentRequestDTO dto) {
     Payment payment = montarPagamento(dto.workerId(), dto.daysWorked(), dto.referenceDate(), PaymentType.THIRTEENTH);
     payment = repository.save(payment);
@@ -99,7 +100,7 @@ public class PaymentServiceImpl implements PaymentService {
   }
 
   @Override @Transactional
-  //@PreAuthorize("hasAnyRole('ADMIN', 'HR')")
+  @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
   public PaymentResponseDTO calculateVacation(PaymentRequestDTO dto) {
     Payment payment = montarPagamento(dto.workerId(), dto.daysWorked(), dto.referenceDate(), PaymentType.VACATION);
     payment = repository.save(payment);
@@ -110,7 +111,7 @@ public class PaymentServiceImpl implements PaymentService {
   }
 
   @Override @Transactional
-  //@PreAuthorize("hasAnyRole('ADMIN', 'HR')")
+  @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
   public PaymentResponseDTO updateStatus(Long id, PaymentStatus status) {
     if (status == PaymentStatus.CANCELED) {
       throw new IllegalArgumentException(
@@ -129,7 +130,7 @@ public class PaymentServiceImpl implements PaymentService {
   }
 
   @Override @Transactional
-  //@PreAuthorize("hasAnyRole('ADMIN', 'HR')")
+  @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
   public PaymentResponseDTO cancel(Long id) {
     Payment payment = buscarPagamento(id);
 

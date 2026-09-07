@@ -1,11 +1,10 @@
-package vinix.feignclients;
+package vinix.feign;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.openfeign.FallbackFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import reactor.core.scheduler.Scheduler.Worker;
 
 import java.util.List;
 

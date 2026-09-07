@@ -18,7 +18,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import vinix.dto.request.PaymentRequestDTO;
@@ -26,8 +25,8 @@ import vinix.dto.response.PaymentResponseDTO;
 import vinix.entities.Payment;
 import vinix.entities.PaymentStatus;
 import vinix.entities.PaymentType;
-import vinix.feignclients.EmployeerDTO;
-import vinix.feignclients.EmployeerFeignClient;
+import vinix.feign.EmployeerDTO;
+import vinix.feign.EmployeerFeignClient;
 import vinix.mapper.PaymentMapper;
 import vinix.repositories.PaymentRepository;
 import vinix.services.PaymentServiceImpl;

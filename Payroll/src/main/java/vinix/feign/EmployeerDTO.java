@@ -1,4 +1,4 @@
-package vinix.feignclients;
+package vinix.feign;
 
 import java.math.BigDecimal;
 
