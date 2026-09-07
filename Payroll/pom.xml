@@ -9,10 +9,10 @@
     <relativePath/> <!-- lookup parent from repository -->
   </parent>
   <groupId>vinix.com</groupId>
-  <artifactId>Pedido</artifactId>
+  <artifactId>Payroll</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-  <name>Pedido</name>
-  <description>Pedido</description>
+  <name>Payroll</name>
+  <description>payroll</description>
 
   <properties>
     <java.version>21</java.version>
