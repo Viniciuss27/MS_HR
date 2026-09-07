@@ -12,8 +12,8 @@ import vinix.dto.response.PaymentResponseDTO;
 import vinix.entities.Payment;
 import vinix.entities.PaymentStatus;
 import vinix.entities.PaymentType;
-import vinix.feign.EmployeerDTO;
-import vinix.feign.EmployeerFeignClient;
+import vinix.feign.EmployeeDTO;
+import vinix.feign.EmployeeFeignClient;
 import vinix.mapper.PaymentMapper;
 import vinix.repositories.PaymentRepository;
 import vinix.services.exceptions.ResourceNotFoundException;
@@ -29,7 +29,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PaymentServiceImpl implements PaymentService {
 
-  private final EmployeerFeignClient feign;
+  private final EmployeeFeignClient feign;
   private final PaymentMapper mapper;
   private final PaymentRepository repository;
 
@@ -41,20 +41,20 @@ public class PaymentServiceImpl implements PaymentService {
   @Override @Transactional
   @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
   public List<PaymentResponseDTO> launchPayroll() {
-    ResponseEntity<List<EmployeerDTO>> response = feign.findAllActive();
+    ResponseEntity<List<EmployeeDTO>> response = feign.findAllActive();
 
     if (response.getStatusCode() == HttpStatus.SERVICE_UNAVAILABLE || response.getBody() == null) {
       throw new ServicoIndisponivelException(
           "O serviço de funcionários está indisponível no momento. Tente novamente mais tarde");
     }
 
-    List<EmployeerDTO> funcionarios = response.getBody();
+    List<EmployeeDTO> funcionarios = response.getBody();
     List<PaymentResponseDTO> pagamentos = new ArrayList<>();
 
     int dias = 30;
     LocalDate referenceDate = LocalDate.now();
 
-    for (EmployeerDTO funcionario : funcionarios) {
+    for (EmployeeDTO funcionario : funcionarios) {
       Payment payment = montarPagamento(funcionario, dias, referenceDate, PaymentType.SALARY);
       payment = repository.save(payment);
       pagamentos.add(mapper.toDTO(payment));
@@ -162,8 +162,8 @@ public class PaymentServiceImpl implements PaymentService {
     return mapper.toDTO(payment);
   }
 
-  private EmployeerDTO validaWorkerId(Long workerId) {
-    ResponseEntity<EmployeerDTO> response = feign.findById(workerId);
+  private EmployeeDTO validaWorkerId(Long workerId) {
+    ResponseEntity<EmployeeDTO> response = feign.findById(workerId);
 
     if (response.getStatusCode() == HttpStatus.SERVICE_UNAVAILABLE) {
       throw new ServicoIndisponivelException("O serviço está indisponível no momento. Tente novamente mais tarde");
@@ -177,18 +177,18 @@ public class PaymentServiceImpl implements PaymentService {
 
   // versão que busca o funcionário por ID (create, calculate13Salary, calculateVacation)
   private Payment montarPagamento(Long workerId, Integer dias, LocalDate referenceDate, PaymentType type) {
-    EmployeerDTO employeer = validaWorkerId(workerId);
+    EmployeeDTO employeer = validaWorkerId(workerId);
     return montarPagamento(employeer, dias, referenceDate, type);
   }
 
   // versão que já recebe o funcionário pronto, sem chamar o Feign de novo (launchPayroll, dentro do loop)
-  private Payment montarPagamento(EmployeerDTO employeer, Integer dias, LocalDate referenceDate, PaymentType type) {
-    BigDecimal total = employeer.dailyIncome().multiply(BigDecimal.valueOf(dias));
+  private Payment montarPagamento(EmployeeDTO employee, Integer dias, LocalDate referenceDate, PaymentType type) {
+    BigDecimal total = employee.dailyIncome().multiply(BigDecimal.valueOf(dias));
 
     return Payment.builder()
-        .workerId(employeer.id())
-        .workerName(employeer.name())
-        .dailyIncome(employeer.dailyIncome())
+        .workerId(employee.id())
+        .workerName(employee.name())
+        .dailyIncome(employee.dailyIncome())
         .daysWorked(dias)
         .grossAmount(total)
         .referenceDate(referenceDate)

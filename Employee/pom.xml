@@ -10,9 +10,9 @@
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>vinix.com</groupId>
-	<artifactId>Employeer</artifactId>
+	<artifactId>Employee</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>Employeer</name>
+	<name>Employee</name>
 	<description />
 
 	<properties>

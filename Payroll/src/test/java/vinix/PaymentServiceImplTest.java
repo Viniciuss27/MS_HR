@@ -25,8 +25,8 @@ import vinix.dto.response.PaymentResponseDTO;
 import vinix.entities.Payment;
 import vinix.entities.PaymentStatus;
 import vinix.entities.PaymentType;
-import vinix.feign.EmployeerDTO;
-import vinix.feign.EmployeerFeignClient;
+import vinix.feign.EmployeeDTO;
+import vinix.feign.EmployeeFeignClient;
 import vinix.mapper.PaymentMapper;
 import vinix.repositories.PaymentRepository;
 import vinix.services.PaymentServiceImpl;
@@ -37,7 +37,7 @@ import vinix.services.exceptions.ServicoIndisponivelException;
 @DisplayName("PaymentServiceImplTest")
 class PaymentServiceImplTest {
 
-  @Mock private EmployeerFeignClient feign;
+  @Mock private EmployeeFeignClient feign;
   @Mock private PaymentMapper mapper;
   @Mock private PaymentRepository repository;
 
@@ -104,7 +104,7 @@ class PaymentServiceImplTest {
   @DisplayName("Deve retornar pagamentos do funcionário")
   void findByWorkerId() {
 
-    EmployeerDTO worker = new EmployeerDTO(10L, "João", new BigDecimal("100.00"));
+    EmployeeDTO worker = new EmployeeDTO(10L, "João", new BigDecimal("100.00"));
 
     Payment payment = Payment.builder().id(1L).workerId(10L).workerName("João").build();
 
@@ -157,7 +157,7 @@ class PaymentServiceImplTest {
 
     PaymentRequestDTO request = new PaymentRequestDTO(10L, 30, LocalDate.of(2026, 9, 1));
 
-    EmployeerDTO worker = new EmployeerDTO(10L, "João", new BigDecimal("100.00"));
+    EmployeeDTO worker = new EmployeeDTO(10L, "João", new BigDecimal("100.00"));
 
     Payment savedPayment = Payment.builder().id(1L).workerId(10L).workerName("João")
         .dailyIncome(new BigDecimal("100.00"))
@@ -186,7 +186,7 @@ class PaymentServiceImplTest {
 
     PaymentRequestDTO request = new PaymentRequestDTO(10L, 30, LocalDate.of(2026, 12, 1));
 
-    EmployeerDTO worker = new EmployeerDTO(10L, "João", new BigDecimal("100.00"));
+    EmployeeDTO worker = new EmployeeDTO(10L, "João", new BigDecimal("100.00"));
 
     Payment savedPayment = Payment.builder().id(2L).workerId(10L).workerName("João")
         .dailyIncome(new BigDecimal("100.00"))
@@ -215,7 +215,7 @@ class PaymentServiceImplTest {
 
     PaymentRequestDTO request = new PaymentRequestDTO(10L, 30, LocalDate.of(2026, 10, 1));
 
-    EmployeerDTO worker = new EmployeerDTO(10L, "João", new BigDecimal("100.00"));
+    EmployeeDTO worker = new EmployeeDTO(10L, "João", new BigDecimal("100.00"));
 
     Payment savedPayment = Payment.builder().id(3L).workerId(10L).workerName("João")
         .dailyIncome(new BigDecimal("100.00"))
@@ -377,8 +377,8 @@ class PaymentServiceImplTest {
   @DisplayName("Deve lançar a folha de pagamento para todos os funcionários")
   void launchPayroll() {
 
-    EmployeerDTO worker1 = new EmployeerDTO(1L, "João", new BigDecimal("100.00"));
-    EmployeerDTO worker2 = new EmployeerDTO(2L, "Maria", new BigDecimal("150.00"));
+    EmployeeDTO worker1 = new EmployeeDTO(1L, "João", new BigDecimal("100.00"));
+    EmployeeDTO worker2 = new EmployeeDTO(2L, "Maria", new BigDecimal("150.00"));
 
     Payment payment1 = Payment.builder().id(1L).workerId(1L).workerName("João")
         .grossAmount(new BigDecimal("3000.00")).status(PaymentStatus.PENDING).type(PaymentType.SALARY).build();

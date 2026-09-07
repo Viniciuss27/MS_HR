@@ -8,15 +8,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 import java.util.List;
 
 @FeignClient(
-	    name = "employeer",
-	    path = "/emplyeers",
-	    fallbackFactory = EmployeerFeignClientFallbackFactory.class
+	    name = "employee",
+	    path = "/emplyees",
+	    fallbackFactory = EmployeeFeignClientFallbackFactory.class
 	)
-	public interface EmployeerFeignClient {
+	public interface EmployeeFeignClient {
 
 	    @GetMapping(value = "/{id}")
-	    ResponseEntity<EmployeerDTO> findById(@PathVariable Long id);
+	    ResponseEntity<EmployeeDTO> findById(@PathVariable Long id);
 
 					@GetMapping
-	    ResponseEntity<List<EmployeerDTO>> findAllActive();
+	    ResponseEntity<List<EmployeeDTO>> findAllActive();
 	}

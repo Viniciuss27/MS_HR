@@ -25,8 +25,8 @@ import vinix.services.WorkerService;
   DELETE /workers/{id} → delete  (retorna 204 No Content)*/
 
 @RestController
-@RequestMapping(value = "/employeers")
-public class WorkerResource {
+@RequestMapping(value = "/employees")
+public class EmployeeResource {
 
 	@Autowired
 	private WorkerService service;

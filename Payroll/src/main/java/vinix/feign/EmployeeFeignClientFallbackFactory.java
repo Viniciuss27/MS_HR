@@ -10,18 +10,18 @@ import java.util.List;
 
 @Component
 @Slf4j
-public class EmployeerFeignClientFallbackFactory implements FallbackFactory<EmployeerFeignClient> {
+public class EmployeeFeignClientFallbackFactory implements FallbackFactory<EmployeeFeignClient> {
 
-	public EmployeerFeignClient create(Throwable cause) {
-		return new EmployeerFeignClient() {
+	public EmployeeFeignClient create(Throwable cause) {
+		return new EmployeeFeignClient() {
 			@Override
-			public ResponseEntity<EmployeerDTO> findById(Long id) {
+			public ResponseEntity<EmployeeDTO> findById(Long id) {
 				log.error("Não foi possível buscar o ID: {}, motivo: {}", id, cause.getMessage());
 				return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
 			}
 
 			@Override
-			public ResponseEntity<List<EmployeerDTO>> findAllActive() {
+			public ResponseEntity<List<EmployeeDTO>> findAllActive() {
 				log.error("Não foi possível buscar a lista de funcionários, motivo: {}", cause.getMessage());
 				return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
 			}

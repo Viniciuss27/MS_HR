@@ -2,7 +2,7 @@ package vinix.feign;
 
 import java.math.BigDecimal;
 
-public record EmployeerDTO(
+public record EmployeeDTO(
     Long id,
     String name,
     BigDecimal dailyIncome
