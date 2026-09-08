@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 import jakarta.persistence.EntityNotFoundException;
 import vinix.entities.Worker;
-import vinix.repositories.WorkerRepository;
+import vinix.repositories.EmployeeRepository;
 import vinix.services.exceptions.DatabaseException;
 import vinix.services.exceptions.ResourceNotFoundException;
 
@@ -21,7 +21,7 @@ public class WorkerService {
 	// usado pelo Payroll.launchPayroll() para gerar a folha do mês em lote
 
 	@Autowired
-	private WorkerRepository repository;
+	private EmployeeRepository repository;
 	
 	public List<Worker> findAll(){
 		return repository.findAll();

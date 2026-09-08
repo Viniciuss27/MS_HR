@@ -9,7 +9,7 @@ import java.util.List;
 
 @FeignClient(
 	    name = "employee",
-	    path = "/emplyees",
+	    path = "/employees",
 	    fallbackFactory = EmployeeFeignClientFallbackFactory.class
 	)
 	public interface EmployeeFeignClient {
