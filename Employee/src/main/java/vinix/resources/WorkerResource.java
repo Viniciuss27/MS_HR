@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import vinix.entities.Worker;
-import vinix.services.WorkerService;
 
 /*GET    /workers      → findAll
   GET    /workers/{id} → findById
