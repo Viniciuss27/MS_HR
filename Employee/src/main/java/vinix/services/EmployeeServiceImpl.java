@@ -11,8 +11,8 @@ import vinix.entities.Employee;
 import vinix.mapper.EmployeeMapper;
 import vinix.repositories.EmployeeRepository;
 import vinix.services.exceptions.ActiveException;
-import vinix.services.exceptions.AgeMinimumException;
-import vinix.services.exceptions.DuplicationException;
+import vinix.services.exceptions.MinimumAgeException;
+import vinix.services.exceptions.DuplicateCpfException;
 import vinix.services.exceptions.ResourceNotFoundException;
 
 import java.time.LocalDate;
@@ -114,13 +114,13 @@ public class EmployeeServiceImpl implements EmployeeService {
   private void validaIdade(LocalDate birthDate) {
     int idade = Period.between(birthDate, LocalDate.now()).getYears();
     if (idade < 18) {
-      throw new AgeMinimumException("O funcionário deve ter no mínimo 18 anos, Idade informada: " + idade);
+      throw new MinimumAgeException("O funcionário deve ter no mínimo 18 anos, Idade informada: " + idade);
     }
   }
 
   private void validaCPF(String cpf) {
     if(repository.existsByCpf(cpf)){
-      throw new DuplicationException("CPF já existente");
+      throw new DuplicateCpfException("CPF já existente");
     }
   }
 

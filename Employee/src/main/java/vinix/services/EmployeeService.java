@@ -5,7 +5,6 @@ import vinix.dto.request.EmployeeRequestDTO;
 import vinix.dto.response.EmployeeDetailsResponseDTO;
 import vinix.dto.response.EmployeeResponseDTO;
 
-import java.io.NotActiveException;
 import java.util.List;
 
 public interface EmployeeService {
@@ -29,7 +28,7 @@ public interface EmployeeService {
     EmployeeResponseDTO updatePosition(Long id, EmployeePositionRequestDTO novaPosition);
 
     //@PreAuthorize("hasRole('HR')")
-    EmployeeResponseDTO activate(Long id) throws NotActiveException;
+    EmployeeResponseDTO activate(Long id);
 
     //@PreAuthorize("hasRole('HR')")
     EmployeeResponseDTO deactivate(Long id);
