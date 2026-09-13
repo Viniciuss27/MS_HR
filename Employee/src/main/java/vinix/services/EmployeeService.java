@@ -1,5 +1,6 @@
 package vinix.services;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import vinix.dto.request.EmployeePositionRequestDTO;
 import vinix.dto.request.EmployeeRequestDTO;
 import vinix.dto.response.EmployeeDetailsResponseDTO;
@@ -15,21 +16,21 @@ public interface EmployeeService {
 
     EmployeeDetailsResponseDTO findByCpf(String cpf);
 
-    //@PreAuthorize("hasRole('HR')")
+    @PreAuthorize("hasRole('HR')")
     List<EmployeeResponseDTO> findAllActive();
 
-    //@PreAuthorize("hasRole('HR')")
+    @PreAuthorize("hasRole('HR')")
     List<EmployeeResponseDTO> findAllInactive();
 
-    //@PreAuthorize("hasRole('HR')")
+    @PreAuthorize("hasRole('HR')")
     EmployeeResponseDTO create(EmployeeRequestDTO dto);
 
-    //@PreAuthorize("hasRole('HR')")
+    @PreAuthorize("hasRole('HR')")
     EmployeeResponseDTO updatePosition(Long id, EmployeePositionRequestDTO novaPosition);
 
-    //@PreAuthorize("hasRole('HR')")
+    @PreAuthorize("hasRole('HR')")
     EmployeeResponseDTO activate(Long id);
 
-    //@PreAuthorize("hasRole('HR')")
+    @PreAuthorize("hasRole('HR')")
     EmployeeResponseDTO deactivate(Long id);
 }

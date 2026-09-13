@@ -1,6 +1,8 @@
 package vinix.services;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vinix.dto.request.EmployeePositionRequestDTO;
@@ -8,6 +10,10 @@ import vinix.dto.request.EmployeeRequestDTO;
 import vinix.dto.response.EmployeeDetailsResponseDTO;
 import vinix.dto.response.EmployeeResponseDTO;
 import vinix.entities.Employee;
+import vinix.kafka.events.EmployeeActivatedEvent;
+import vinix.kafka.events.EmployeeDeactivatedEvent;
+import vinix.kafka.events.EmployeePositionUpdatedEvent;
+import vinix.kafka.producer.ProducerService;
 import vinix.mapper.EmployeeMapper;
 import vinix.repositories.EmployeeRepository;
 import vinix.services.exceptions.ActiveException;
@@ -15,16 +21,19 @@ import vinix.services.exceptions.MinimumAgeException;
 import vinix.services.exceptions.DuplicateCpfException;
 import vinix.services.exceptions.ResourceNotFoundException;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.List;
 
 @RequiredArgsConstructor
 @Service
+@Slf4j
 public class EmployeeServiceImpl implements EmployeeService {
 
   private final EmployeeRepository repository;
   private final EmployeeMapper mapper;
+  private final ProducerService kafka;
 
   @Override @Transactional(readOnly = true)
   public List<EmployeeResponseDTO> findAll() {
@@ -41,19 +50,19 @@ public class EmployeeServiceImpl implements EmployeeService {
   }
 
   @Override @Transactional(readOnly = true)
-  //@PreAuthorize("hasRole('HR')")
+  @PreAuthorize("hasRole('HR')")
   public List<EmployeeResponseDTO> findAllActive() {
     return repository.findByActive(true).stream().map(mapper::toDTO).toList();
   }
 
   @Override @Transactional(readOnly = true)
-  //@PreAuthorize("hasAnyRole('HR')")
+  @PreAuthorize("hasAnyRole('HR')")
   public List<EmployeeResponseDTO> findAllInactive() {
     return repository.findByActive(false).stream().map(mapper::toDTO).toList();
   }
 
   @Override @Transactional
-  //@PreAuthorize("hasRole('HR')")
+  @PreAuthorize("hasRole('HR')")
   public EmployeeResponseDTO create(EmployeeRequestDTO dto) {
     validaIdade(dto.birthDate());
     validaCPF(dto.cpf());
@@ -66,18 +75,22 @@ public class EmployeeServiceImpl implements EmployeeService {
   }
 
   @Override @Transactional
-  //@PreAuthorize("hasRole('HR')")
+  @PreAuthorize("hasRole('HR')")
   public EmployeeResponseDTO updatePosition(Long id, EmployeePositionRequestDTO dto) {
-    Employee p = verificaId(id);
-    mapper.updatePosition(dto, p);
-    Employee salvo = repository.save(p);
-    return mapper.toDTO(salvo);
+    Employee employee = verificaId(id);
+    String oldPosition = employee.getPosition();
+    mapper.updatePosition(dto, employee);
+    Employee salvo = repository.save(employee);
 
-    // kafka -> funcionario promovido( Auth -> novo role)
+    EmployeePositionUpdatedEvent event = new EmployeePositionUpdatedEvent(salvo.getId(), salvo.getName(),
+        oldPosition, dto.position(), Instant.now());
+    kafka.publishEmployeePositionUpdated(event);
+
+    return mapper.toDTO(salvo);
   }
 
   @Override @Transactional
-  //@PreAuthorize("hasRole('HR')")
+  @PreAuthorize("hasRole('HR')")
   public EmployeeResponseDTO activate(Long id) {
     Employee employee = verificaId(id);
     if (employee.getActive()) {
@@ -86,13 +99,15 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     employee.setActive(true);
     Employee ativo = repository.save(employee);
-    return mapper.toDTO(ativo);
 
-    // kafka -> funcionario reativado
+    EmployeeActivatedEvent event = new EmployeeActivatedEvent(ativo.getId(), ativo.getName(),Instant.now());
+    kafka.publishEmployeeActivated(event);
+
+    return mapper.toDTO(ativo);
   }
 
   @Override @Transactional
-  //@PreAuthorize("hasRole('HR')")
+  @PreAuthorize("hasRole('HR')")
   public EmployeeResponseDTO deactivate(Long id) {
     Employee employee = verificaId(id);
     if(!employee.getActive()) {
@@ -101,9 +116,11 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     employee.setActive(false);
     Employee inativo = repository.save(employee);
-    return mapper.toDTO(inativo);
 
-    // kafka -> funcionario desativado
+    EmployeeDeactivatedEvent event = new EmployeeDeactivatedEvent(inativo.getId(), inativo.getName(),Instant.now());
+    kafka.publishEmployeeDeactivated(event);
+
+    return mapper.toDTO(inativo);
   }
 
   private Employee verificaId(Long id){
