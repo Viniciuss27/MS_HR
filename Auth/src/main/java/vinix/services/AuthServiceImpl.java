@@ -14,11 +14,12 @@ import vinix.dto.response.LoginResponseDTO;
 import vinix.dto.response.UserResponseDTO;
 import vinix.entities.Role;
 import vinix.entities.User;
+import vinix.exceptions.DuplicateEmployeeException;
 import vinix.mapper.UserMapper;
 import vinix.repositories.RoleRepository;
 import vinix.repositories.UserRepository;
-import vinix.services.exceptions.DuplicateEmailException;
-import vinix.services.exceptions.ResourceNotFoundException;
+import vinix.exceptions.DuplicateEmailException;
+import vinix.exceptions.ResourceNotFoundException;
 
 import java.util.List;
 
@@ -52,23 +53,27 @@ public class AuthServiceImpl implements AuthService {
 								jwtService.getExpiration());
 			}
 
+
 			@Override
 			@Transactional
 			@PreAuthorize("hasAnyRole('ADMIN', 'HR')")
 			public UserResponseDTO register(RegisterRequestDTO dto) {
-					if (userRepository.findByEmail(dto.email()).isPresent()) {
-						throw new DuplicateEmailException(
-								"Já existe uma conta cadastrada com o email " + dto.email());
-					}
 
-					Role role = roleRepository.findByRoleName("USER")
-							.orElseThrow(() -> new ResourceNotFoundException(
-									"Role padrão não encontrada: USER"));
+				if (userRepository.findByEmail(dto.email()).isPresent()) {
+					throw new DuplicateEmailException("Já existe uma conta cadastrada com o email " + dto.email());
+				}
 
-					User user = mapper.toEntity(dto);
-					user.setPassword(password.encode(dto.password()));
-					user.getRoles().add(role);
+				if (userRepository.findByEmployeeId(dto.employeeId()).isPresent()) {
+					throw new DuplicateEmployeeException("Já existe uma conta cadastrada para o funcionário " + dto.employeeId());
+				}
 
-					return mapper.toResponseDTO(userRepository.save(user));
+				Role role = roleRepository.findByRoleName("USER")
+						.orElseThrow(() -> new ResourceNotFoundException("Role padrão não encontrada: USER"));
+
+				User user = mapper.toEntity(dto);
+				user.setPassword(password.encode(dto.password()));
+				user.getRoles().add(role);
+
+				return mapper.toResponseDTO(userRepository.save(user));
 			}
 }

@@ -47,17 +47,26 @@ public class User implements UserDetails {
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
+    @Setter
+    @Column(name = "employee_id", nullable = false, unique = true)
+    private Long employeeId;
+
+    @Setter
+    @Column(nullable = false)
+    private Boolean active = true;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "tb_user_role",
         joinColumns = @JoinColumn(name = "user_id"),
         inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
 
-    public User(Long id, String name, String email, String password) {
-      this.id = id;
-      this.name = name;
-      this.email = email;
-      this.password = password;
+    public User(Long id, String name, String email, String password, Long employeeId) {
+        this.id = id;
+        this.name = name;
+        this.email = email;
+        this.password = password;
+        this.employeeId = employeeId;
     }
 
     @Override
@@ -80,5 +89,5 @@ public class User implements UserDetails {
     public boolean isCredentialsNonExpired() { return true; }
 
     @Override // conta ativa
-    public boolean isEnabled() { return true; }
+    public boolean isEnabled() { return active; }
 }

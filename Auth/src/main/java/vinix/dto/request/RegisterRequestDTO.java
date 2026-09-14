@@ -2,6 +2,8 @@ package vinix.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
 public record RegisterRequestDTO(
@@ -15,5 +17,9 @@ public record RegisterRequestDTO(
 	    
 	    @NotBlank (message = "A senha é obrigatório")
 		   @Size(min = 8, message = "Senha deve ter no mínimo 8 caracteres")
-	    String password
+	    String password,
+
+		   @NotNull(message = "O funcionário é obrigatório")
+		   @Positive(message = "O id deve ser positivo")
+				 Long employeeId
 	) {}

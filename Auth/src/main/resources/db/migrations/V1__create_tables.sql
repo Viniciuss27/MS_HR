@@ -2,7 +2,9 @@ CREATE TABLE tb_user (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL
+    password VARCHAR(255) NOT NULL,
+    employee_id BIGINT NOT NULL UNIQUE,
+    active BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 CREATE TABLE tb_role (

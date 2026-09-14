@@ -1,4 +1,4 @@
-package vinix.resources.exceptions;
+package vinix.exceptions;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -10,8 +10,6 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import vinix.services.exceptions.DuplicateEmailException;
-import vinix.services.exceptions.ResourceNotFoundException;
 
 
 import java.time.Instant;
@@ -92,6 +90,20 @@ public class ResourceHandlerException {
         .status(CONFLICT.value())//409
         .message(e.getMessage())
         .error("Email já cadastrado")
+        .path(request.getRequestURI()).build();
+
+    return ResponseEntity.status(CONFLICT).body(err);
+  }
+
+  @ExceptionHandler(DuplicateEmployeeException.class)
+  public ResponseEntity<StandardError> duplicateEmployee(
+      DuplicateEmployeeException e, HttpServletRequest request) {
+
+    StandardError err = StandardError.builder()
+        .timestamp(Instant.now())
+        .status(CONFLICT.value())//409
+        .message(e.getMessage())
+        .error("Trabalhador já cadastrado")
         .path(request.getRequestURI()).build();
 
     return ResponseEntity.status(CONFLICT).body(err);

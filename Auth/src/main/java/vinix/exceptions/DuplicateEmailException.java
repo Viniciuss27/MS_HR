@@ -1,4 +1,4 @@
-package vinix.services.exceptions;
+package vinix.exceptions;
 
 public class DuplicateEmailException extends RuntimeException {
   public DuplicateEmailException(String message) {

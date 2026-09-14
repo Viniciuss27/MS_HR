@@ -1,4 +1,4 @@
-package vinix.resources.exceptions;
+package vinix.exceptions;
 
 public class UserNotFoundException extends RuntimeException {
   public UserNotFoundException(String message) {

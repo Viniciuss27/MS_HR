@@ -17,6 +17,7 @@ public interface UserMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "password", ignore = true)
     @Mapping(target = "roles", ignore = true)
+    @Mapping(target = "active", ignore = true)
     User toEntity(RegisterRequestDTO dto);
 
     @Mapping(target = "roles", source = "roles", qualifiedByName = "rolesToNames")
@@ -24,8 +25,8 @@ public interface UserMapper {
 
     @Named("rolesToNames")
     default List<String> rolesToNames(Set<Role> roles) {
-      return roles.stream()
-          .map(Role::getRoleName)
-          .toList();
+        return roles.stream()
+            .map(Role::getRoleName)
+            .toList();
     }
 }

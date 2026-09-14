@@ -7,18 +7,18 @@ INSERT INTO tb_role (role_name) VALUES
 
 
 -- USERS
-INSERT INTO tb_user (name, email, password) VALUES
+INSERT INTO tb_user (name, email, password, employee_id) VALUES
 ('Administrador', 'admin@hr.com',
- '$2b$10$0LgsseBfk6N7LX80dCF6TO8/2Tup6iIQsK88axNXd5MWWxFQFPYFu'),
+ '$2b$10$0LgsseBfk6N7LX80dCF6TO8/2Tup6iIQsK88axNXd5MWWxFQFPYFu', 1),
 
 ('Recursos Humanos', 'hr@hr.com',
- '$2b$10$0LgsseBfk6N7LX80dCF6TO8/2Tup6iIQsK88axNXd5MWWxFQFPYFu'),
+ '$2b$10$0LgsseBfk6N7LX80dCF6TO8/2Tup6iIQsK88axNXd5MWWxFQFPYFu', 2),
 
 ('Gerente', 'manager@hr.com',
- '$2b$10$0LgsseBfk6N7LX80dCF6TO8/2Tup6iIQsK88axNXd5MWWxFQFPYFu'),
+ '$2b$10$0LgsseBfk6N7LX80dCF6TO8/2Tup6iIQsK88axNXd5MWWxFQFPYFu', 3),
 
 ('Usuário', 'user@hr.com',
- '$2b$10$0LgsseBfk6N7LX80dCF6TO8/2Tup6iIQsK88axNXd5MWWxFQFPYFu');
+ '$2b$10$0LgsseBfk6N7LX80dCF6TO8/2Tup6iIQsK88axNXd5MWWxFQFPYFu', 4);
 
 -- todas senhas 123456 para teste
 
