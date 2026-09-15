@@ -72,15 +72,15 @@ public class PaymentServiceImpl implements PaymentService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<PaymentResponseDTO> findByWorkerId(Long workerId) {
-    validaWorkerId(workerId);
-    return repository.findByWorkerId(workerId).stream().map(mapper::toDTO).toList();
+  public List<PaymentResponseDTO> findByEmployeeId(Long employeeId) {
+    validaEmployeeId(employeeId);
+    return repository.findByEmployeeId(employeeId).stream().map(mapper::toDTO).toList();
   }
 
   @Override @Transactional
   @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
   public PaymentResponseDTO create(PaymentRequestDTO dto) {
-    Payment payment = montarPagamento(dto.workerId(), dto.daysWorked(), dto.referenceDate(), PaymentType.SALARY);
+    Payment payment = montarPagamento(dto.employeeId(), dto.daysWorked(), dto.referenceDate(), PaymentType.SALARY);
     payment = repository.save(payment);
 
     // publicar evento Kafka para o serviço financeiro
@@ -91,7 +91,7 @@ public class PaymentServiceImpl implements PaymentService {
   @Override @Transactional
   @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
   public PaymentResponseDTO calculate13Salary(PaymentRequestDTO dto) {
-    Payment payment = montarPagamento(dto.workerId(), dto.daysWorked(), dto.referenceDate(), PaymentType.THIRTEENTH);
+    Payment payment = montarPagamento(dto.employeeId(), dto.daysWorked(), dto.referenceDate(), PaymentType.THIRTEENTH);
     payment = repository.save(payment);
 
     // kafka - imprime o pagamento do 13°
@@ -102,7 +102,7 @@ public class PaymentServiceImpl implements PaymentService {
   @Override @Transactional
   @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
   public PaymentResponseDTO calculateVacation(PaymentRequestDTO dto) {
-    Payment payment = montarPagamento(dto.workerId(), dto.daysWorked(), dto.referenceDate(), PaymentType.VACATION);
+    Payment payment = montarPagamento(dto.employeeId(), dto.daysWorked(), dto.referenceDate(), PaymentType.VACATION);
     payment = repository.save(payment);
 
     // kafka - imprime o cálculo de férias
@@ -162,22 +162,22 @@ public class PaymentServiceImpl implements PaymentService {
     return mapper.toDTO(payment);
   }
 
-  private EmployeeDTO validaWorkerId(Long workerId) {
-    ResponseEntity<EmployeeDTO> response = feign.findById(workerId);
+  private EmployeeDTO validaEmployeeId(Long employeeId) {
+    ResponseEntity<EmployeeDTO> response = feign.findById(employeeId);
 
     if (response.getStatusCode() == HttpStatus.SERVICE_UNAVAILABLE) {
       throw new ServicoIndisponivelException("O serviço está indisponível no momento. Tente novamente mais tarde");
     }
 
     if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
-      throw new ResourceNotFoundException(workerId + " -> WorkerId não encontrado");
+      throw new ResourceNotFoundException(employeeId + " -> EmployeeId não encontrado");
     }
     return response.getBody();
   }
 
   // versão que busca o funcionário por ID (create, calculate13Salary, calculateVacation)
   private Payment montarPagamento(Long workerId, Integer dias, LocalDate referenceDate, PaymentType type) {
-    EmployeeDTO employeer = validaWorkerId(workerId);
+    EmployeeDTO employeer = validaEmployeeId(workerId);
     return montarPagamento(employeer, dias, referenceDate, type);
   }
 
@@ -186,8 +186,8 @@ public class PaymentServiceImpl implements PaymentService {
     BigDecimal total = employee.dailyIncome().multiply(BigDecimal.valueOf(dias));
 
     return Payment.builder()
-        .workerId(employee.id())
-        .workerName(employee.name())
+        .employeeId(employee.id())
+        .employeeName(employee.name())
         .dailyIncome(employee.dailyIncome())
         .daysWorked(dias)
         .grossAmount(total)

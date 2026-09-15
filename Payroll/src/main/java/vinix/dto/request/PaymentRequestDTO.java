@@ -9,8 +9,8 @@ import vinix.entities.PaymentType;
 import java.time.LocalDate;
 
 public record PaymentRequestDTO(
-    @NotNull (message = "Worker Id é obrigatório")
-    Long workerId,
+    @NotNull (message = "Employee Id é obrigatório")
+    Long employeeId,
 
     @NotNull (message = "Days Worked é obrigatório")
     @Positive (message = "Somente numeros positivos")

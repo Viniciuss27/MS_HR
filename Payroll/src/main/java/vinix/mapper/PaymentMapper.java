@@ -12,11 +12,12 @@ public interface PaymentMapper {
   PaymentResponseDTO toDTO(Payment payment);
 
   @Mapping(target = "id", ignore = true)
-  @Mapping(target = "workerName", ignore = true)
+  @Mapping(target = "employeeName", ignore = true)
   @Mapping(target = "dailyIncome", ignore = true)
   @Mapping(target = "grossAmount", ignore = true)
   @Mapping(target = "paymentDate", ignore = true)
   @Mapping(target = "status", ignore = true)
+  @Mapping(target = "type", ignore = true)
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "updatedAt", ignore = true)
   Payment toEntity(PaymentRequestDTO dto);

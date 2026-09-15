@@ -11,7 +11,7 @@ public interface PaymentService {
 
   PaymentResponseDTO findById(Long id);
 
-  List<PaymentResponseDTO> findByWorkerId(Long workerId);
+  List<PaymentResponseDTO> findByEmployeeId(Long employeeId);
 
   List<PaymentResponseDTO> findAll();
 

@@ -9,8 +9,8 @@ import java.time.LocalDate;
 
 public record PaymentResponseDTO(
     Long id,
-    Long workerId,
-    String workerName,
+    Long employeeId,
+    String employeeName,
     BigDecimal grossAmount,
     PaymentStatus status,
     PaymentType type,

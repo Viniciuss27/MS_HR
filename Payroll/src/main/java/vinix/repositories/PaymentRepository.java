@@ -6,5 +6,5 @@ import vinix.entities.Payment;
 import java.util.List;
 
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
-  List<Payment> findByWorkerId(Long workerId);
+  List<Payment> findByEmployeeId(Long employeeId);
 }

@@ -35,6 +35,7 @@ public class AuthServiceImpl implements AuthService {
 			private final JwtService jwtService;
 
 			@Override
+			@Transactional(readOnly = true)
 			public LoginResponseDTO login(LoginRequestDTO dto) {
 						autenticador.authenticate(
 								new UsernamePasswordAuthenticationToken(dto.email(),
@@ -47,7 +48,7 @@ public class AuthServiceImpl implements AuthService {
 						List<String> roles = user.getRoles().stream()
 								.map(Role::getRoleName).toList();
 
-						String token = jwtService.generateToken(dto.email(), roles);
+						String token = jwtService.generateToken(user.getEmail(), roles);
 
 						return new LoginResponseDTO(token, "Bearer",
 								jwtService.getExpiration());
