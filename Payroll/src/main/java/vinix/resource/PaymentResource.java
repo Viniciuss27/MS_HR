@@ -38,9 +38,9 @@ public class PaymentResource {
 			return ResponseEntity.ok(service.findById(id));
 		}
 
-	 @GetMapping(value = "/workerId/{workerId}")
-	 public ResponseEntity<List<PaymentResponseDTO>> findByWorkerId(@PathVariable Long workerId) {
-			return ResponseEntity.ok(service.findByWorkerId(workerId));
+	 @GetMapping(value = "/employeeId/{employeeId}")
+	 public ResponseEntity<List<PaymentResponseDTO>> findByWorkerId(@PathVariable Long employeeId) {
+			return ResponseEntity.ok(service.findByEmployeeId(employeeId));
 		}
 
 		@PostMapping

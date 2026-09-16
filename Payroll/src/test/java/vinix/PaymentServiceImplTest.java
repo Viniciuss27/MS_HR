@@ -27,6 +27,10 @@ import vinix.entities.PaymentStatus;
 import vinix.entities.PaymentType;
 import vinix.feign.EmployeeDTO;
 import vinix.feign.EmployeeFeignClient;
+import vinix.kafka.events.PaymentCanceledEvent;
+import vinix.kafka.events.PaymentCreatedEvent;
+import vinix.kafka.events.PaymentRefundRequestedEvent;
+import vinix.kafka.producer.ProducerService;
 import vinix.mapper.PaymentMapper;
 import vinix.repositories.PaymentRepository;
 import vinix.services.PaymentServiceImpl;
@@ -40,6 +44,7 @@ class PaymentServiceImplTest {
   @Mock private EmployeeFeignClient feign;
   @Mock private PaymentMapper mapper;
   @Mock private PaymentRepository repository;
+  @Mock private ProducerService kafka;
 
   @InjectMocks
   private PaymentServiceImpl service;
@@ -48,8 +53,8 @@ class PaymentServiceImplTest {
   @DisplayName("Deve retornar todos os pagamentos")
   void findAll() {
 
-    Payment payment = Payment.builder().id(1L).workerId(10L)
-        .workerName("João").grossAmount(new BigDecimal("3000.00")).build();
+    Payment payment = Payment.builder().id(1L).employeeId(10L)
+        .employeeName("João").grossAmount(new BigDecimal("3000.00")).build();
 
     PaymentResponseDTO dto = new PaymentResponseDTO(1L,10L,"João",
         new BigDecimal("3000.00"), PaymentStatus.PENDING, PaymentType.SALARY, LocalDate.now());
@@ -71,7 +76,7 @@ class PaymentServiceImplTest {
   @DisplayName("Deve encontrar pagamento pelo ID")
   void findById() {
 
-    Payment payment = Payment.builder().id(1L).workerId(10L).workerName("João").build();
+    Payment payment = Payment.builder().id(1L).employeeId(10L).employeeName("João").build();
 
     PaymentResponseDTO dto = new PaymentResponseDTO(1L, 10L, "João",
         BigDecimal.ZERO, PaymentStatus.PENDING, PaymentType.SALARY, LocalDate.now());
@@ -106,22 +111,22 @@ class PaymentServiceImplTest {
 
     EmployeeDTO worker = new EmployeeDTO(10L, "João", new BigDecimal("100.00"));
 
-    Payment payment = Payment.builder().id(1L).workerId(10L).workerName("João").build();
+    Payment payment = Payment.builder().id(1L).employeeId(10L).employeeName("João").build();
 
     PaymentResponseDTO dto = new PaymentResponseDTO(1L, 10L, "João", BigDecimal.ZERO,
         PaymentStatus.PENDING, PaymentType.SALARY, LocalDate.now());
 
     when(feign.findById(10L)).thenReturn(ResponseEntity.ok(worker));
-    when(repository.findByWorkerId(10L)).thenReturn(List.of(payment));
+    when(repository.findByEmployeeId(10L)).thenReturn(List.of(payment));
     when(mapper.toDTO(payment)).thenReturn(dto);
 
-    List<PaymentResponseDTO> result = service.findByWorkerId(10L);
+    List<PaymentResponseDTO> result = service.findByEmployeeId(10L);
 
     assertEquals(1, result.size());
     assertEquals(dto, result.get(0));
 
     verify(feign).findById(10L);
-    verify(repository).findByWorkerId(10L);
+    verify(repository).findByEmployeeId(10L);
     verify(mapper).toDTO(payment);
   }
 
@@ -132,10 +137,10 @@ class PaymentServiceImplTest {
 
     when(feign.findById(10L)).thenReturn(ResponseEntity.notFound().build());
 
-    assertThrows(ResourceNotFoundException.class,() -> service.findByWorkerId(10L));
+    assertThrows(ResourceNotFoundException.class,() -> service.findByEmployeeId(10L));
 
     verify(feign).findById(10L);
-    verify(repository, never()).findByWorkerId(anyLong());
+    verify(repository, never()).findByEmployeeId(anyLong());
   }
 
 
@@ -145,10 +150,10 @@ class PaymentServiceImplTest {
 
     when(feign.findById(10L)).thenReturn(ResponseEntity.status(SERVICE_UNAVAILABLE).build());
 
-    assertThrows(ServicoIndisponivelException.class, () -> service.findByWorkerId(10L));
+    assertThrows(ServicoIndisponivelException.class, () -> service.findByEmployeeId(10L));
 
     verify(feign).findById(10L);
-    verify(repository, never()).findByWorkerId(anyLong());
+    verify(repository, never()).findByEmployeeId(anyLong());
   }
 
   @Test //Create
@@ -159,7 +164,7 @@ class PaymentServiceImplTest {
 
     EmployeeDTO worker = new EmployeeDTO(10L, "João", new BigDecimal("100.00"));
 
-    Payment savedPayment = Payment.builder().id(1L).workerId(10L).workerName("João")
+    Payment savedPayment = Payment.builder().id(1L).employeeId(10L).employeeName("João")
         .dailyIncome(new BigDecimal("100.00"))
         .daysWorked(30).grossAmount(new BigDecimal("3000.00")).referenceDate(request.referenceDate())
         .status(PaymentStatus.PENDING).type(PaymentType.SALARY).build();
@@ -177,6 +182,7 @@ class PaymentServiceImplTest {
 
     verify(feign).findById(10L);
     verify(repository).save(any(Payment.class));
+    verify(kafka).publishCreatedEvent(any(PaymentCreatedEvent.class));
     verify(mapper).toDTO(savedPayment);
   }
 
@@ -188,7 +194,7 @@ class PaymentServiceImplTest {
 
     EmployeeDTO worker = new EmployeeDTO(10L, "João", new BigDecimal("100.00"));
 
-    Payment savedPayment = Payment.builder().id(2L).workerId(10L).workerName("João")
+    Payment savedPayment = Payment.builder().id(2L).employeeId(10L).employeeName("João")
         .dailyIncome(new BigDecimal("100.00"))
         .daysWorked(30).grossAmount(new BigDecimal("3000.00")).referenceDate(request.referenceDate())
         .status(PaymentStatus.PENDING).type(PaymentType.THIRTEENTH).build();
@@ -206,6 +212,7 @@ class PaymentServiceImplTest {
 
     verify(feign).findById(10L);
     verify(repository).save(any(Payment.class));
+    verify(kafka).publishCreatedEvent(any(PaymentCreatedEvent.class));
     verify(mapper).toDTO(savedPayment);
   }
 
@@ -217,7 +224,7 @@ class PaymentServiceImplTest {
 
     EmployeeDTO worker = new EmployeeDTO(10L, "João", new BigDecimal("100.00"));
 
-    Payment savedPayment = Payment.builder().id(3L).workerId(10L).workerName("João")
+    Payment savedPayment = Payment.builder().id(3L).employeeId(10L).employeeName("João")
         .dailyIncome(new BigDecimal("100.00"))
         .daysWorked(30).grossAmount(new BigDecimal("3000.00")).referenceDate(request.referenceDate())
         .status(PaymentStatus.PENDING).type(PaymentType.VACATION).build();
@@ -235,6 +242,7 @@ class PaymentServiceImplTest {
 
     verify(feign).findById(10L);
     verify(repository).save(any(Payment.class));
+    verify(kafka).publishCreatedEvent(any(PaymentCreatedEvent.class));
     verify(mapper).toDTO(savedPayment);
   }
 
@@ -294,6 +302,7 @@ class PaymentServiceImplTest {
 
     verify(repository).findById(1L);
     verify(repository).save(payment);
+    verify(kafka).publishCanceledEvent(any(PaymentCanceledEvent.class));
     verify(mapper).toDTO(payment);
   }
 
@@ -318,6 +327,7 @@ class PaymentServiceImplTest {
 
     verify(repository).findById(1L);
     verify(repository).save(payment);
+    verify(kafka).publishRefundRequestedEvent(any(PaymentRefundRequestedEvent.class));
     verify(mapper).toDTO(payment);
   }
 
@@ -380,10 +390,10 @@ class PaymentServiceImplTest {
     EmployeeDTO worker1 = new EmployeeDTO(1L, "João", new BigDecimal("100.00"));
     EmployeeDTO worker2 = new EmployeeDTO(2L, "Maria", new BigDecimal("150.00"));
 
-    Payment payment1 = Payment.builder().id(1L).workerId(1L).workerName("João")
+    Payment payment1 = Payment.builder().id(1L).employeeId(1L).employeeName("João")
         .grossAmount(new BigDecimal("3000.00")).status(PaymentStatus.PENDING).type(PaymentType.SALARY).build();
 
-    Payment payment2 = Payment.builder().id(2L).workerId(2L).workerName("Maria")
+    Payment payment2 = Payment.builder().id(2L).employeeId(2L).employeeName("Maria")
         .grossAmount(new BigDecimal("4500.00")).status(PaymentStatus.PENDING).type(PaymentType.SALARY).build();
 
     PaymentResponseDTO dto1 = new PaymentResponseDTO(1L, 1L, "João",
