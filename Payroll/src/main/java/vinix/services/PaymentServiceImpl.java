@@ -14,12 +14,17 @@ import vinix.entities.PaymentStatus;
 import vinix.entities.PaymentType;
 import vinix.feign.EmployeeDTO;
 import vinix.feign.EmployeeFeignClient;
+import vinix.kafka.events.PaymentCanceledEvent;
+import vinix.kafka.events.PaymentCreatedEvent;
+import vinix.kafka.events.PaymentRefundRequestedEvent;
+import vinix.kafka.producer.ProducerService;
 import vinix.mapper.PaymentMapper;
 import vinix.repositories.PaymentRepository;
 import vinix.services.exceptions.ResourceNotFoundException;
 import vinix.services.exceptions.ServicoIndisponivelException;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +37,7 @@ public class PaymentServiceImpl implements PaymentService {
   private final EmployeeFeignClient feign;
   private final PaymentMapper mapper;
   private final PaymentRepository repository;
+  private final ProducerService kafka;
 
   @Override @Transactional(readOnly = true)
   public List<PaymentResponseDTO> findAll() {
@@ -45,7 +51,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     if (response.getStatusCode() == HttpStatus.SERVICE_UNAVAILABLE || response.getBody() == null) {
       throw new ServicoIndisponivelException(
-          "O serviço de funcionários está indisponível no momento. Tente novamente mais tarde");
+          "O serviço de funcionários está indisponível no momento, tente novamente mais tarde");
     }
 
     List<EmployeeDTO> funcionarios = response.getBody();
@@ -57,9 +63,9 @@ public class PaymentServiceImpl implements PaymentService {
     for (EmployeeDTO funcionario : funcionarios) {
       Payment payment = montarPagamento(funcionario, dias, referenceDate, PaymentType.SALARY);
       payment = repository.save(payment);
-      pagamentos.add(mapper.toDTO(payment));
 
-      // kafka - imprime todo pagamento mensal dos funcionários
+      kafka.publishCreatedEvent(publicarCriacao(payment));
+      pagamentos.add(mapper.toDTO(payment));
     }
 
     return pagamentos;
@@ -83,8 +89,7 @@ public class PaymentServiceImpl implements PaymentService {
     Payment payment = montarPagamento(dto.employeeId(), dto.daysWorked(), dto.referenceDate(), PaymentType.SALARY);
     payment = repository.save(payment);
 
-    // publicar evento Kafka para o serviço financeiro
-
+    kafka.publishCreatedEvent(publicarCriacao(payment));
     return mapper.toDTO(payment);
   }
 
@@ -94,8 +99,7 @@ public class PaymentServiceImpl implements PaymentService {
     Payment payment = montarPagamento(dto.employeeId(), dto.daysWorked(), dto.referenceDate(), PaymentType.THIRTEENTH);
     payment = repository.save(payment);
 
-    // kafka - imprime o pagamento do 13°
-
+    kafka.publishCreatedEvent(publicarCriacao(payment));
     return mapper.toDTO(payment);
   }
 
@@ -105,8 +109,7 @@ public class PaymentServiceImpl implements PaymentService {
     Payment payment = montarPagamento(dto.employeeId(), dto.daysWorked(), dto.referenceDate(), PaymentType.VACATION);
     payment = repository.save(payment);
 
-    // kafka - imprime o cálculo de férias
-
+    kafka.publishCreatedEvent(publicarCriacao(payment));
     return mapper.toDTO(payment);
   }
 
@@ -119,13 +122,11 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     Payment payment = buscarPagamento(id);
-
     payment.setStatus(status);
     payment = repository.save(payment);
 
-    // publicar evento Kafka para o serviço financeiro processar o pagamento (PagamentoPendenteEvent)
-    // TODO: listener separado para receber confirmação do financeiro e atualizar status para PAID
-
+    // kafka consumer para receber confirmação do financeiro e atualizar status para PAID
+    // este método é a alteração manual de status; a confirmação automática virá por evento
     return mapper.toDTO(payment);
   }
 
@@ -140,16 +141,16 @@ public class PaymentServiceImpl implements PaymentService {
         payment = repository.save(payment);
 
         log.info("Pagamento ID: {} cancelado. Estorno será solicitado ao serviço financeiro!", id);
-
-        // publicar evento Kafka para o serviço financeiro - para recolher
+        kafka.publishRefundRequestedEvent(new PaymentRefundRequestedEvent(payment.getId(), payment.getEmployeeId(),
+            payment.getGrossAmount(), Instant.now()));
       }
       case PENDING -> {
         payment.setStatus(PaymentStatus.CANCELED);
         payment = repository.save(payment);
 
         log.info("Pagamento ID: {} cancelado", id);
-
-        // publicar evento Kafka para o serviço financeiro - foi cancelado
+        kafka.publishCanceledEvent(new PaymentCanceledEvent(payment.getId()
+            , payment.getEmployeeId(), Instant.now()));
       }
       case CANCELED -> {
         log.info("Pagamento ID: {} já está cancelado!", id);
@@ -160,6 +161,13 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     return mapper.toDTO(payment);
+  }
+
+  private PaymentCreatedEvent publicarCriacao(Payment payment) {
+    kafka.publishCreatedEvent(new PaymentCreatedEvent(
+        payment.getId(), payment.getEmployeeId(), payment.getEmployeeName(),
+        payment.getGrossAmount(), payment.getType(), payment.getReferenceDate(), Instant.now()));
+    return null;
   }
 
   private EmployeeDTO validaEmployeeId(Long employeeId) {
@@ -176,8 +184,8 @@ public class PaymentServiceImpl implements PaymentService {
   }
 
   // versão que busca o funcionário por ID (create, calculate13Salary, calculateVacation)
-  private Payment montarPagamento(Long workerId, Integer dias, LocalDate referenceDate, PaymentType type) {
-    EmployeeDTO employeer = validaEmployeeId(workerId);
+  private Payment montarPagamento(Long employeeId, Integer dias, LocalDate referenceDate, PaymentType type) {
+    EmployeeDTO employeer = validaEmployeeId(employeeId);
     return montarPagamento(employeer, dias, referenceDate, type);
   }
 
