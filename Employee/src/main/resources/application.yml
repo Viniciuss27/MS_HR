@@ -1,6 +1,6 @@
 spring:
   application:
-    name: employeer
+    name: employee
   
   config:
     import:

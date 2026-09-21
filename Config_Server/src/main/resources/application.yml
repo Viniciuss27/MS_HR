@@ -9,10 +9,15 @@ spring:
     config:
       server:
         git:
-          uri: https://github.com/viniciuss27/MS_Config
+          uri: https://github.com/viniciuss27/MS_HR_Config
           default-label: main
           username: ${GIT_USERNAME}
           password: ${GIT_PASSWORD}
 
 server:
   port: 8888
+  
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URI}
