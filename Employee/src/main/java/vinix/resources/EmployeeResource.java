@@ -15,6 +15,7 @@ import vinix.dto.request.EmployeePositionRequestDTO;
 import vinix.dto.request.EmployeeRequestDTO;
 import vinix.dto.response.EmployeeDetailsResponseDTO;
 import vinix.dto.response.EmployeeResponseDTO;
+import vinix.dto.response.EmployeeSalaryResponseDTO;
 import vinix.services.EmployeeService;
 
 import java.net.URI;
@@ -30,6 +31,11 @@ public class EmployeeResource {
   @GetMapping
   public ResponseEntity<List<EmployeeResponseDTO>> findAll() {
     return ResponseEntity.ok(service.findAll());
+  }
+
+  @GetMapping(value = "/{id}/salary")
+  public ResponseEntity<EmployeeSalaryResponseDTO> findSalaryById(@PathVariable Long id) {
+    return ResponseEntity.ok(service.findSalaryById(id));
   }
 
   @GetMapping(value = "/{id}")

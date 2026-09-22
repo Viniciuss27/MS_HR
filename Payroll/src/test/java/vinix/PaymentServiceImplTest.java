@@ -116,7 +116,7 @@ class PaymentServiceImplTest {
     PaymentResponseDTO dto = new PaymentResponseDTO(1L, 10L, "João", BigDecimal.ZERO,
         PaymentStatus.PENDING, PaymentType.SALARY, LocalDate.now());
 
-    when(feign.findById(10L)).thenReturn(ResponseEntity.ok(worker));
+    when(feign.findById(10L, "oi")).thenReturn(ResponseEntity.ok(worker));
     when(repository.findByEmployeeId(10L)).thenReturn(List.of(payment));
     when(mapper.toDTO(payment)).thenReturn(dto);
 
@@ -125,7 +125,7 @@ class PaymentServiceImplTest {
     assertEquals(1, result.size());
     assertEquals(dto, result.get(0));
 
-    verify(feign).findById(10L);
+    verify(feign).findById(10L, "oi");
     verify(repository).findByEmployeeId(10L);
     verify(mapper).toDTO(payment);
   }
@@ -135,11 +135,11 @@ class PaymentServiceImplTest {
   @DisplayName("Deve lançar exceção quando funcionário não existir")
   void findByWorkerIdNotFound() {
 
-    when(feign.findById(10L)).thenReturn(ResponseEntity.notFound().build());
+    when(feign.findById(10L, "oi")).thenReturn(ResponseEntity.notFound().build());
 
     assertThrows(ResourceNotFoundException.class,() -> service.findByEmployeeId(10L));
 
-    verify(feign).findById(10L);
+    verify(feign).findById(10L, "oi");
     verify(repository, never()).findByEmployeeId(anyLong());
   }
 
@@ -148,11 +148,11 @@ class PaymentServiceImplTest {
   @DisplayName("Deve lançar exceção quando serviço de funcionário estiver indisponível")
   void findByWorkerIdServiceUnavailable() {
 
-    when(feign.findById(10L)).thenReturn(ResponseEntity.status(SERVICE_UNAVAILABLE).build());
+    when(feign.findById(10L, "oi")).thenReturn(ResponseEntity.status(SERVICE_UNAVAILABLE).build());
 
     assertThrows(ServicoIndisponivelException.class, () -> service.findByEmployeeId(10L));
 
-    verify(feign).findById(10L);
+    verify(feign).findById(10L, "oi");
     verify(repository, never()).findByEmployeeId(anyLong());
   }
 
@@ -172,7 +172,7 @@ class PaymentServiceImplTest {
     PaymentResponseDTO response = new PaymentResponseDTO(1L, 10L, "João",
         new BigDecimal("3000.00"), PaymentStatus.PENDING, PaymentType.SALARY, request.referenceDate());
 
-    when(feign.findById(10L)).thenReturn(ResponseEntity.ok(worker));
+    when(feign.findById(10L, "oi")).thenReturn(ResponseEntity.ok(worker));
     when(repository.save(any(Payment.class))).thenReturn(savedPayment);
     when(mapper.toDTO(savedPayment)).thenReturn(response);
 
@@ -180,7 +180,7 @@ class PaymentServiceImplTest {
 
     assertEquals(response, result);
 
-    verify(feign).findById(10L);
+    verify(feign).findById(10L, "oi");
     verify(repository).save(any(Payment.class));
     verify(kafka).publishCreatedEvent(any(PaymentCreatedEvent.class));
     verify(mapper).toDTO(savedPayment);
@@ -202,7 +202,7 @@ class PaymentServiceImplTest {
     PaymentResponseDTO response = new PaymentResponseDTO(2L, 10L, "João", new BigDecimal("3000.00"),
         PaymentStatus.PENDING, PaymentType.THIRTEENTH, request.referenceDate());
 
-    when(feign.findById(10L)).thenReturn(ResponseEntity.ok(worker));
+    when(feign.findById(10L, "oi")).thenReturn(ResponseEntity.ok(worker));
     when(repository.save(any(Payment.class))).thenReturn(savedPayment);
     when(mapper.toDTO(savedPayment)).thenReturn(response);
 
@@ -210,7 +210,7 @@ class PaymentServiceImplTest {
 
     assertEquals(response, result);
 
-    verify(feign).findById(10L);
+    verify(feign).findById(10L, "oi");
     verify(repository).save(any(Payment.class));
     verify(kafka).publishCreatedEvent(any(PaymentCreatedEvent.class));
     verify(mapper).toDTO(savedPayment);
@@ -232,7 +232,7 @@ class PaymentServiceImplTest {
     PaymentResponseDTO response = new PaymentResponseDTO(3L, 10L, "João",
         new BigDecimal("3000.00"), PaymentStatus.PENDING, PaymentType.VACATION, request.referenceDate());
 
-    when(feign.findById(10L)).thenReturn(ResponseEntity.ok(worker));
+    when(feign.findById(10L, "oi")).thenReturn(ResponseEntity.ok(worker));
     when(repository.save(any(Payment.class))).thenReturn(savedPayment);
     when(mapper.toDTO(savedPayment)).thenReturn(response);
 
@@ -240,7 +240,7 @@ class PaymentServiceImplTest {
 
     assertEquals(response, result);
 
-    verify(feign).findById(10L);
+    verify(feign).findById(10L, "oi");
     verify(repository).save(any(Payment.class));
     verify(kafka).publishCreatedEvent(any(PaymentCreatedEvent.class));
     verify(mapper).toDTO(savedPayment);
@@ -402,7 +402,7 @@ class PaymentServiceImplTest {
     PaymentResponseDTO dto2 = new PaymentResponseDTO(2L, 2L, "Maria",
         new BigDecimal("4500.00"), PaymentStatus.PENDING, PaymentType.SALARY, LocalDate.now());
 
-    when(feign.findAllActive()).thenReturn(ResponseEntity.ok(List.of(worker1, worker2)));
+    when(feign.findAllActive("oi")).thenReturn(ResponseEntity.ok(List.of(worker1, worker2)));
     when(repository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
     when(mapper.toDTO(any(Payment.class))).thenReturn(dto1, dto2);
 
@@ -412,7 +412,7 @@ class PaymentServiceImplTest {
     assertEquals(dto1, result.get(0));
     assertEquals(dto2, result.get(1));
 
-    verify(feign).findAllActive();
+    verify(feign).findAllActive("oi");
     verify(repository, times(2)).save(any(Payment.class));
     verify(mapper, times(2)).toDTO(any(Payment.class));
   }
@@ -422,11 +422,11 @@ class PaymentServiceImplTest {
   @DisplayName("Deve lançar exceção quando serviço de funcionários estiver indisponível")
   void launchPayrollUnavailable() {
 
-    when(feign.findAllActive()).thenReturn(ResponseEntity.status(SERVICE_UNAVAILABLE).build());
+    when(feign.findAllActive("oi")).thenReturn(ResponseEntity.status(SERVICE_UNAVAILABLE).build());
 
     assertThrows(ServicoIndisponivelException.class, () -> service.launchPayroll());
 
-    verify(feign).findAllActive();
+    verify(feign).findAllActive("oi");
     verify(repository, never()).save(any());
   }
 
@@ -435,11 +435,11 @@ class PaymentServiceImplTest {
   @DisplayName("Deve lançar exceção quando resposta do serviço de funcionários estiver vazia")
   void launchPayrollIsNull() {
 
-    when(feign.findAllActive()).thenReturn(ResponseEntity.ok(null));
+    when(feign.findAllActive("oi")).thenReturn(ResponseEntity.ok(null));
 
     assertThrows(ServicoIndisponivelException.class, () -> service.launchPayroll());
 
-    verify(feign).findAllActive();
+    verify(feign).findAllActive("oi");
     verify(repository, never()).save(any());
   }
 }

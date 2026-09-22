@@ -5,12 +5,15 @@ import vinix.dto.request.EmployeePositionRequestDTO;
 import vinix.dto.request.EmployeeRequestDTO;
 import vinix.dto.response.EmployeeDetailsResponseDTO;
 import vinix.dto.response.EmployeeResponseDTO;
+import vinix.dto.response.EmployeeSalaryResponseDTO;
 
 import java.util.List;
 
 public interface EmployeeService {
 
     EmployeeResponseDTO findById(Long id);
+
+    EmployeeSalaryResponseDTO findSalaryById(Long id);
 
     List<EmployeeResponseDTO> findAll();
 

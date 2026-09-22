@@ -24,6 +24,7 @@ import vinix.services.exceptions.MinimumAgeException;
 import vinix.services.exceptions.ResourceNotFoundException;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -119,7 +120,7 @@ class EmployeeServiceImplTest {
 
 		EmployeeDetailsResponseDTO dto = new EmployeeDetailsResponseDTO(
 						1L, "João", "12345678909", "Desenvolvedor", LocalDate.of(1995, 1, 1),
-						LocalDate.of(2026, 1, 10));
+						LocalDate.of(2026, 1, 10), Instant.now());
 
 		when(repository.findByCpf("12345678909")).thenReturn(Optional.of(employee));
 		when(mapper.toDetailsDTO(employee)).thenReturn(dto);

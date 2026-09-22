@@ -9,6 +9,7 @@ import vinix.dto.request.EmployeePositionRequestDTO;
 import vinix.dto.request.EmployeeRequestDTO;
 import vinix.dto.response.EmployeeDetailsResponseDTO;
 import vinix.dto.response.EmployeeResponseDTO;
+import vinix.dto.response.EmployeeSalaryResponseDTO;
 import vinix.entities.Employee;
 import vinix.kafka.events.EmployeeActivatedEvent;
 import vinix.kafka.events.EmployeeDeactivatedEvent;
@@ -41,6 +42,11 @@ public class EmployeeServiceImpl implements EmployeeService {
   }
 
   @Override @Transactional(readOnly = true)
+  public EmployeeSalaryResponseDTO findSalaryById(Long id) {
+    return mapper.toSalaryDTO(verificaId(id));
+  }
+
+  @Override @Transactional(readOnly = true)
   public EmployeeResponseDTO findById(Long id) {return mapper.toDTO(verificaId(id));}
 
   @Override @Transactional(readOnly = true)
@@ -64,9 +70,11 @@ public class EmployeeServiceImpl implements EmployeeService {
   @Override @Transactional
   @PreAuthorize("hasRole('HR')")
   public EmployeeResponseDTO create(EmployeeRequestDTO dto) {
+    String cpfLimpo = limparCpf(dto.cpf());
     validaIdade(dto.birthDate());
-    validaCPF(dto.cpf());
+    validaCPF(cpfLimpo);
     Employee employee = mapper.toEntity(dto);
+    employee.setCpf(cpfLimpo);
     employee.setActive(true);
     employee.setHireDate(LocalDate.now());
 
@@ -139,6 +147,10 @@ public class EmployeeServiceImpl implements EmployeeService {
     if(repository.existsByCpf(cpf)){
       throw new DuplicateCpfException("CPF já existente");
     }
+  }
+
+  private String limparCpf(String cpf) {
+    return cpf.replaceAll("[^0-9]", "");
   }
 
 }

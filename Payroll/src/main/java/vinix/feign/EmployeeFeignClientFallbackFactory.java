@@ -15,13 +15,13 @@ public class EmployeeFeignClientFallbackFactory implements FallbackFactory<Emplo
 	public EmployeeFeignClient create(Throwable cause) {
 		return new EmployeeFeignClient() {
 			@Override
-			public ResponseEntity<EmployeeDTO> findById(Long id) {
+			public ResponseEntity<EmployeeDTO> findById(Long id, String authorization) {
 				log.error("Não foi possível buscar o ID: {}, motivo: {}", id, cause.getMessage());
 				return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
 			}
 
 			@Override
-			public ResponseEntity<List<EmployeeDTO>> findAllActive() {
+			public ResponseEntity<List<EmployeeDTO>> findAllActive(String authorization) {
 				log.error("Não foi possível buscar a lista de funcionários, motivo: {}", cause.getMessage());
 				return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
 			}

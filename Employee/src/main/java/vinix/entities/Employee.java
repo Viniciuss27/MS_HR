@@ -2,6 +2,7 @@ package vinix.entities;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 
 import jakarta.persistence.Column;
@@ -17,6 +18,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -49,4 +52,12 @@ public class Employee implements Serializable {
 
 	@Column(nullable = false)
 	private Boolean active;
+
+	@Column(nullable = false, updatable = false)
+	@CreationTimestamp
+	private Instant createdAt;
+
+	@Column(nullable = false)
+	@UpdateTimestamp
+	private Instant updatedAt;
 }

@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vinix.dto.request.PaymentRequestDTO;
@@ -47,7 +49,7 @@ public class PaymentServiceImpl implements PaymentService {
   @Override @Transactional
   @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
   public List<PaymentResponseDTO> launchPayroll() {
-    ResponseEntity<List<EmployeeDTO>> response = feign.findAllActive();
+    ResponseEntity<List<EmployeeDTO>> response = feign.findAllActive(tokenAtual());
 
     if (response.getStatusCode() == HttpStatus.SERVICE_UNAVAILABLE || response.getBody() == null) {
       throw new ServicoIndisponivelException(
@@ -64,7 +66,7 @@ public class PaymentServiceImpl implements PaymentService {
       Payment payment = montarPagamento(funcionario, dias, referenceDate, PaymentType.SALARY);
       payment = repository.save(payment);
 
-      kafka.publishCreatedEvent(publicarCriacao(payment));
+      publicarCriacao(payment);
       pagamentos.add(mapper.toDTO(payment));
     }
 
@@ -89,7 +91,7 @@ public class PaymentServiceImpl implements PaymentService {
     Payment payment = montarPagamento(dto.employeeId(), dto.daysWorked(), dto.referenceDate(), PaymentType.SALARY);
     payment = repository.save(payment);
 
-    kafka.publishCreatedEvent(publicarCriacao(payment));
+    publicarCriacao(payment);
     return mapper.toDTO(payment);
   }
 
@@ -99,7 +101,7 @@ public class PaymentServiceImpl implements PaymentService {
     Payment payment = montarPagamento(dto.employeeId(), dto.daysWorked(), dto.referenceDate(), PaymentType.THIRTEENTH);
     payment = repository.save(payment);
 
-    kafka.publishCreatedEvent(publicarCriacao(payment));
+    publicarCriacao(payment);
     return mapper.toDTO(payment);
   }
 
@@ -109,7 +111,7 @@ public class PaymentServiceImpl implements PaymentService {
     Payment payment = montarPagamento(dto.employeeId(), dto.daysWorked(), dto.referenceDate(), PaymentType.VACATION);
     payment = repository.save(payment);
 
-    kafka.publishCreatedEvent(publicarCriacao(payment));
+    publicarCriacao(payment);
     return mapper.toDTO(payment);
   }
 
@@ -163,15 +165,22 @@ public class PaymentServiceImpl implements PaymentService {
     return mapper.toDTO(payment);
   }
 
-  private PaymentCreatedEvent publicarCriacao(Payment payment) {
+  private void publicarCriacao(Payment payment) {
     kafka.publishCreatedEvent(new PaymentCreatedEvent(
         payment.getId(), payment.getEmployeeId(), payment.getEmployeeName(),
         payment.getGrossAmount(), payment.getType(), payment.getReferenceDate(), Instant.now()));
-    return null;
+  }
+
+  private String tokenAtual() {
+    var authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication != null && authentication.getPrincipal() instanceof Jwt jwt) {
+      return "Bearer " + jwt.getTokenValue();
+    }
+    throw new IllegalStateException("Nenhum usuário autenticado no contexto atual");
   }
 
   private EmployeeDTO validaEmployeeId(Long employeeId) {
-    ResponseEntity<EmployeeDTO> response = feign.findById(employeeId);
+    ResponseEntity<EmployeeDTO> response = feign.findById(employeeId, tokenAtual());
 
     if (response.getStatusCode() == HttpStatus.SERVICE_UNAVAILABLE) {
       throw new ServicoIndisponivelException("O serviço está indisponível no momento. Tente novamente mais tarde");
