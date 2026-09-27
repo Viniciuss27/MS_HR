@@ -1,9 +1,8 @@
-package vinix.resources.exceptions;
+package vinix.exceptions;
 
 import java.io.Serializable;
 import java.time.Instant;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;

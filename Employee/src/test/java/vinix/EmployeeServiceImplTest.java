@@ -18,10 +18,10 @@ import vinix.kafka.producer.ProducerService;
 import vinix.mapper.EmployeeMapper;
 import vinix.repositories.EmployeeRepository;
 import vinix.services.EmployeeServiceImpl;
-import vinix.services.exceptions.ActiveException;
-import vinix.services.exceptions.DuplicateCpfException;
-import vinix.services.exceptions.MinimumAgeException;
-import vinix.services.exceptions.ResourceNotFoundException;
+import vinix.exceptions.ActiveException;
+import vinix.exceptions.DuplicateCpfException;
+import vinix.exceptions.MinimumAgeException;
+import vinix.exceptions.ResourceNotFoundException;
 
 import java.math.BigDecimal;
 import java.time.Instant;

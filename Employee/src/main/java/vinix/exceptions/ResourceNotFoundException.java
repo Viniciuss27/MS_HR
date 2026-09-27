@@ -1,4 +1,4 @@
-package vinix.services.exceptions;
+package vinix.exceptions;
 
 public class ResourceNotFoundException extends RuntimeException {
 	private static final long serialVersionUID = 1L;

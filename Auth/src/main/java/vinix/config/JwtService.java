@@ -27,10 +27,12 @@ public class JwtService {
         this.expiration = expiration;
     }
 
-    public String generateToken(String email, List<String> roles) {
+    public String generateToken(String email, Long employeeId, List<String> roles) {
         Instant now = Instant.now();
+
         return Jwts.builder()
             .subject(email)
+            .claim("employeeId", employeeId)
             .claim("roles", roles)
             .issuedAt(Date.from(now))
             .expiration(Date.from(now.plus(expiration, ChronoUnit.MILLIS)))

@@ -1,4 +1,4 @@
-package vinix.services.exceptions;
+package vinix.exceptions;
 
 public class ActiveException extends RuntimeException {
   public ActiveException(String message) {

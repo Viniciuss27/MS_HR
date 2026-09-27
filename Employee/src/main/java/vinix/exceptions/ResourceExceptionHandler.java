@@ -1,29 +1,22 @@
-package vinix.resources.exceptions;
+package vinix.exceptions;
 
 import java.time.Instant;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpStatus;        //Spring, não Apache
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import vinix.services.exceptions.ActiveException;
-import vinix.services.exceptions.DuplicateCpfException;
-import vinix.services.exceptions.MinimumAgeException;
-import vinix.services.exceptions.ResourceNotFoundException;
 
 import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
 
 @RestControllerAdvice
@@ -95,6 +88,20 @@ public class ResourceExceptionHandler {
             .status(UNPROCESSABLE_ENTITY.value()) //422
             .message(e.getMessage())
             .error("Idade mínima não atendida")
+            .path(request.getRequestURI()).build();
+
+        return ResponseEntity.status(UNPROCESSABLE_ENTITY).body(err);
+    }
+
+    @ExceptionHandler(SaldoInsuficienteException.class)
+    public ResponseEntity<StandardError> saldoInsuficiente(
+        SaldoInsuficienteException e, HttpServletRequest request) {
+
+        StandardError err = StandardError.builder()
+            .timestamp(Instant.now())
+            .status(UNPROCESSABLE_ENTITY.value()) //422
+            .message(e.getMessage())
+            .error("Saldo não disponivel")
             .path(request.getRequestURI()).build();
 
         return ResponseEntity.status(UNPROCESSABLE_ENTITY).body(err);

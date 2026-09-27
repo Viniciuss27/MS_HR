@@ -1,4 +1,4 @@
-package vinix.services.exceptions;
+package vinix.exceptions;
 
 public class MinimumAgeException extends RuntimeException {
   public MinimumAgeException(String message) {

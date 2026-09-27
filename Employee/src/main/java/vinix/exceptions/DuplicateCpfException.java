@@ -1,4 +1,4 @@
-package vinix.services.exceptions;
+package vinix.exceptions;
 
 public class DuplicateCpfException extends RuntimeException {
   public DuplicateCpfException(String message) {

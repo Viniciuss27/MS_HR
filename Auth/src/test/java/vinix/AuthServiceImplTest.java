@@ -85,7 +85,7 @@ public class AuthServiceImplTest {
         void autenticaComSucesso() {
 
             when(userRepository.findByEmail("funcionario@hr.com")).thenReturn(Optional.of(user));
-            when(jwtService.generateToken("funcionario@hr.com", List.of("USER"))).thenReturn("token-fake-jwt");
+            when(jwtService.generateToken("funcionario@hr.com", 1l, List.of("USER"))).thenReturn("token-fake-jwt");
             when(jwtService.getExpiration()).thenReturn(86400000L);
 
             LoginResponseDTO resultado = service.login(loginRequest);
