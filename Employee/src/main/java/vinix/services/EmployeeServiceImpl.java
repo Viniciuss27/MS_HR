@@ -25,6 +25,7 @@ import vinix.exceptions.SaldoInsuficienteException;
 import vinix.kafka.events.EmployeeActivatedEvent;
 import vinix.kafka.events.EmployeeDeactivatedEvent;
 import vinix.kafka.events.EmployeePositionUpdatedEvent;
+import vinix.kafka.events.VacationApprovedEvent;
 import vinix.kafka.producer.ProducerService;
 import vinix.mapper.EmployeeMapper;
 import vinix.mapper.VacationMapper;
@@ -102,6 +103,10 @@ public class EmployeeServiceImpl implements EmployeeService {
     verificado.setDecidedAt(Instant.now());
     verificado.setDecidedBy(employeeIdAtual());
     VacationRequest salvo = vacationRepository.save(verificado);
+
+    kafka.publishVacationApproved(new VacationApprovedEvent(salvo.getEmployee().getId(),
+        salvo.getEmployee().getName(), salvo.getEmployee().getDailyIncome(), salvo.getId(),
+        salvo.getDecidedBy(), salvo.getDecidedAt(), salvo.getStartDate(), salvo.getEndDate(), salvo.getDaysRequested()));
     return vacationMapper.toResponseDTO(salvo);
   }
 
@@ -149,10 +154,8 @@ public class EmployeeServiceImpl implements EmployeeService {
     mapper.updatePosition(dto, employee);
     Employee salvo = repository.save(employee);
 
-    EmployeePositionUpdatedEvent event = new EmployeePositionUpdatedEvent(salvo.getId(), salvo.getName(),
-        oldPosition, dto.position(), Instant.now());
-    kafka.publishEmployeePositionUpdated(event);
-
+    kafka.publishEmployeePositionUpdated(new EmployeePositionUpdatedEvent(salvo.getId(),
+        salvo.getName(), oldPosition, dto.position(), Instant.now()));
     return mapper.toDTO(salvo);
   }
 
@@ -167,9 +170,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     employee.setActive(true);
     Employee ativo = repository.save(employee);
 
-    EmployeeActivatedEvent event = new EmployeeActivatedEvent(ativo.getId(), ativo.getName(),Instant.now());
-    kafka.publishEmployeeActivated(event);
-
+    kafka.publishEmployeeActivated(new EmployeeActivatedEvent(ativo.getId(), ativo.getName(),Instant.now()));
     return mapper.toDTO(ativo);
   }
 
@@ -184,9 +185,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     employee.setActive(false);
     Employee inativo = repository.save(employee);
 
-    EmployeeDeactivatedEvent event = new EmployeeDeactivatedEvent(inativo.getId(), inativo.getName(),Instant.now());
-    kafka.publishEmployeeDeactivated(event);
-
+    kafka.publishEmployeeDeactivated(new EmployeeDeactivatedEvent(inativo.getId(), inativo.getName(),Instant.now()));
     return mapper.toDTO(inativo);
   }
 
