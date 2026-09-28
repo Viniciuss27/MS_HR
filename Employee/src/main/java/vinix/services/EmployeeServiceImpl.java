@@ -1,7 +1,9 @@
 package vinix.services;
 
+import com.sun.jdi.request.DuplicateRequestException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -29,7 +31,7 @@ import vinix.mapper.VacationMapper;
 import vinix.repositories.EmployeeRepository;
 import vinix.exceptions.ActiveException;
 import vinix.exceptions.MinimumAgeException;
-import vinix.exceptions.DuplicateCpfException;
+import vinix.exceptions.VacationRuleException;
 import vinix.exceptions.ResourceNotFoundException;
 import vinix.repositories.VacationRepository;
 
@@ -86,6 +88,7 @@ public class EmployeeServiceImpl implements EmployeeService {
   public VacationResponseDTO vacationRequest(VacationRequestDTO dto) {
     Long employeeId = employeeIdAtual();
     Employee employee = verificaId(employeeId);
+    validaPeriodo(dto);
     VacationRequest salvo = vacationRepository.save(montarSolicitacao(employee, dto));
     return vacationMapper.toResponseDTO(salvo);
   }
@@ -94,6 +97,7 @@ public class EmployeeServiceImpl implements EmployeeService {
   @PreAuthorize("hasAnyRole('HR', 'MANAGER')")
   public VacationResponseDTO vacationApprove(Long id) {
     VacationRequest verificado = verificaVacationId(id);
+    validaDecisao(verificado);
     verificado.setStatus(VacationStatus.APROVADA);
     verificado.setDecidedAt(Instant.now());
     verificado.setDecidedBy(employeeIdAtual());
@@ -105,6 +109,7 @@ public class EmployeeServiceImpl implements EmployeeService {
   @PreAuthorize("hasAnyRole('HR', 'MANAGER')")
   public VacationResponseDTO vacationReject(Long id) {
     VacationRequest verificado = verificaVacationId(id);
+    validaDecisao(verificado);
     verificado.setStatus(VacationStatus.REPROVADA);
     verificado.setDecidedAt(Instant.now());
     verificado.setDecidedBy(employeeIdAtual());
@@ -116,6 +121,7 @@ public class EmployeeServiceImpl implements EmployeeService {
   @PreAuthorize("hasRole('HR')")
   public VacationResponseDTO vacationRequestForEmployee(Long employeeId, VacationRequestDTO dto) {
       Employee employee = verificaId(employeeId);
+      validaPeriodo(dto);
       VacationRequest salvo = vacationRepository.save(montarSolicitacao(employee, dto));
       return vacationMapper.toResponseDTO(salvo);
     }
@@ -201,7 +207,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
   private void validaCPF(String cpf) {
     if(repository.existsByCpf(cpf)){
-      throw new DuplicateCpfException("CPF já existente");
+      throw new DuplicateRequestException("CPF já existente");
     }
   }
 
@@ -224,7 +230,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     long dias = ChronoUnit.DAYS.between(dto.startDate(), dto.endDate()) + 1;
 
     LocalDate hireDate = employee.getHireDate();
-    LocalDate acquisitionStart = calcularInicioPeriodoAquisitivo(hireDate);
+    LocalDate acquisitionStart = inicioPeriodoConcluido(hireDate);
     LocalDate acquisitionEnd = acquisitionStart.plusYears(1).minusDays(1);
     validaSaldo(employee, acquisitionStart, (int) dias);
 
@@ -238,13 +244,17 @@ public class EmployeeServiceImpl implements EmployeeService {
     return vacation;
   }
 
-  private LocalDate calcularInicioPeriodoAquisitivo(LocalDate hireDate) {
+  private LocalDate inicioPeriodoConcluido(LocalDate hireDate) {
     LocalDate hoje = LocalDate.now();
+    if (hireDate.plusYears(1).isAfter(hoje)) {
+      throw new SaldoInsuficienteException(
+          "Funcionário ainda não completou 12 meses de trabalho");
+    }
     LocalDate inicio = hireDate;
-    while (!inicio.plusYears(1).isAfter(hoje)) {
+    while (!inicio.plusYears(2).isAfter(hoje)) {
       inicio = inicio.plusYears(1);
     }
-    return inicio;
+    return inicio; // último período aquisitivo já concluído
   }
 
   private void validaSaldo(Employee employee, LocalDate acquisitionStart, int diasSolicitados) {
@@ -258,6 +268,25 @@ public class EmployeeServiceImpl implements EmployeeService {
     if (diasSolicitados > saldoDisponivel) {
       throw new SaldoInsuficienteException(
           "Saldo insuficiente: disponível " + saldoDisponivel + " dias, solicitado " + diasSolicitados);
+    }
+  }
+
+  private void validaDecisao(VacationRequest vacation) {
+    if (vacation.getStatus() != VacationStatus.SOLICITADA) {
+      throw new SaldoInsuficienteException(
+          "Só é possível decidir solicitações SOLICITADA, Status atual: " + vacation.getStatus());
+    }
+    if (vacation.getEmployee().getId().equals(employeeIdAtual())) {
+      throw new AccessDeniedException("Não é possível decidir a própria solicitação de férias");
+    }
+  }
+
+  private void validaPeriodo(VacationRequestDTO dto) {
+    if (dto.endDate().isBefore(dto.startDate())) {
+      throw new SaldoInsuficienteException("A data final não pode ser anterior à data inicial");
+    }
+    if (dto.startDate().isBefore(LocalDate.now())) {
+      throw new SaldoInsuficienteException("A data inicial não pode estar no passado");
     }
   }
 }

@@ -37,9 +37,9 @@ public class ResourceExceptionHandler {
         return ResponseEntity.status(NOT_FOUND).body(err);
     }
 
-    @ExceptionHandler(DuplicateCpfException.class)
+    @ExceptionHandler(VacationRuleException.class)
     public ResponseEntity<StandardError> duplicateError(
-        DuplicateCpfException e, HttpServletRequest request) {
+        VacationRuleException e, HttpServletRequest request) {
 
         StandardError err = StandardError.builder()
             .timestamp(Instant.now())
@@ -93,15 +93,15 @@ public class ResourceExceptionHandler {
         return ResponseEntity.status(UNPROCESSABLE_ENTITY).body(err);
     }
 
-    @ExceptionHandler(SaldoInsuficienteException.class)
-    public ResponseEntity<StandardError> saldoInsuficiente(
-        SaldoInsuficienteException e, HttpServletRequest request) {
+    @ExceptionHandler(VacationRuleException.class)
+    public ResponseEntity<StandardError> vacationRule(
+        VacationRuleException e, HttpServletRequest request) {
 
         StandardError err = StandardError.builder()
             .timestamp(Instant.now())
             .status(UNPROCESSABLE_ENTITY.value()) //422
             .message(e.getMessage())
-            .error("Saldo não disponivel")
+            .error("Regra de férias violada")
             .path(request.getRequestURI()).build();
 
         return ResponseEntity.status(UNPROCESSABLE_ENTITY).body(err);

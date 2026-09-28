@@ -19,7 +19,7 @@ import vinix.mapper.EmployeeMapper;
 import vinix.repositories.EmployeeRepository;
 import vinix.services.EmployeeServiceImpl;
 import vinix.exceptions.ActiveException;
-import vinix.exceptions.DuplicateCpfException;
+import vinix.exceptions.VacationRuleException;
 import vinix.exceptions.MinimumAgeException;
 import vinix.exceptions.ResourceNotFoundException;
 
@@ -234,7 +234,7 @@ class EmployeeServiceImplTest {
 
 		when(repository.existsByCpf(request.cpf())).thenReturn(true);
 
-		assertThrows(DuplicateCpfException.class, () -> service.create(request));
+		assertThrows(VacationRuleException.class, () -> service.create(request));
 
 		verify(repository).existsByCpf(request.cpf());
 		verifyNoInteractions(mapper);
