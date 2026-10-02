@@ -1,4 +1,4 @@
-package vinix.kafka.events;
+package vinix.kafka.events.producer;
 
 import java.time.Instant;
 

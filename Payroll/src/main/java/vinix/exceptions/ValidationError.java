@@ -1,18 +1,17 @@
-package vinix.resource.exception;
+package vinix.exceptions;
 
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
 @SuperBuilder
 @NoArgsConstructor
 @Getter
-public class ValidationError extends StandardError{
+public class ValidationError extends StandardError {
   private static final long serialVersionUID = 1L;
 
   @Builder.Default

@@ -1,19 +1,18 @@
-package vinix.resource.exception;
+package vinix.exceptions;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import vinix.services.exceptions.ResourceNotFoundException;
-import vinix.services.exceptions.ServicoIndisponivelException;
+import vinix.exceptions.ResourceNotFoundException;
+import vinix.exceptions.ServicoIndisponivelException;
 
 import java.time.Instant;
-
 
 import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.FORBIDDEN;

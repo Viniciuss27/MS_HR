@@ -19,6 +19,12 @@ public interface PaymentService {
   List<PaymentResponseDTO> launchPayroll();
 
   @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
+  List<PaymentResponseDTO> vacationRequestAll();
+
+  @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
+  PaymentResponseDTO vacationRequestId(Long vacationRequestId);
+
+  @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
   PaymentResponseDTO create(PaymentRequestDTO dto);
 
   @PreAuthorize("hasAnyRole('ADMIN', 'HR')")

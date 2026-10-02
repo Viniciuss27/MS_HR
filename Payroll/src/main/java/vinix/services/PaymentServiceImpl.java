@@ -16,14 +16,14 @@ import vinix.entities.PaymentStatus;
 import vinix.entities.PaymentType;
 import vinix.feign.EmployeeDTO;
 import vinix.feign.EmployeeFeignClient;
-import vinix.kafka.events.PaymentCanceledEvent;
-import vinix.kafka.events.PaymentCreatedEvent;
-import vinix.kafka.events.PaymentRefundRequestedEvent;
+import vinix.kafka.events.producer.PaymentCanceledEvent;
+import vinix.kafka.events.producer.PaymentCreatedEvent;
+import vinix.kafka.events.producer.PaymentRefundRequestedEvent;
 import vinix.kafka.producer.ProducerService;
 import vinix.mapper.PaymentMapper;
 import vinix.repositories.PaymentRepository;
-import vinix.services.exceptions.ResourceNotFoundException;
-import vinix.services.exceptions.ServicoIndisponivelException;
+import vinix.exceptions.ResourceNotFoundException;
+import vinix.exceptions.ServicoIndisponivelException;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -78,12 +78,24 @@ public class PaymentServiceImpl implements PaymentService {
     return mapper.toDTO(buscarPagamento(id));
   }
 
-  @Override
-  @Transactional(readOnly = true)
+  @Override @Transactional(readOnly = true)
   public List<PaymentResponseDTO> findByEmployeeId(Long employeeId) {
     validaEmployeeId(employeeId);
     return repository.findByEmployeeId(employeeId).stream().map(mapper::toDTO).toList();
   }
+
+  @Override @Transactional(readOnly = true)
+  @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
+  public List<PaymentResponseDTO> vacationRequestAll() {
+    return repository.findByType(PaymentType.VACATION).stream().map(mapper::toDTO).toList();
+  }
+
+  @Override @Transactional(readOnly = true)
+  @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
+  public PaymentResponseDTO vacationRequestId(Long vacationRequestId) {
+    return mapper.toDTO(verificaPagamentoFerias(vacationRequestId));
+  }
+
 
   @Override @Transactional
   @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
@@ -219,4 +231,10 @@ public class PaymentServiceImpl implements PaymentService {
         new ResourceNotFoundException(id + " -> Id não encontrado"));
     return payment;
   }
+
+  private Payment verificaPagamentoFerias(Long vacationRequestId) {
+    return repository.findByVacationRequestId(vacationRequestId).orElseThrow(
+            () -> new ResourceNotFoundException(vacationRequestId + " -> Pagamento não encontrado"));
+  }
+
 }

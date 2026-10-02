@@ -48,6 +48,9 @@ public class Payment implements Serializable {
 		@Column(nullable = false, name = "days_worked")
 		private Integer daysWorked;
 
+	@Column(name = "vacation_request_id", unique = true)
+	private Long vacationRequestId;
+
 		@Column(nullable = false, name = "gross_amount", precision = 19, scale = 2)
 		private BigDecimal grossAmount;
 

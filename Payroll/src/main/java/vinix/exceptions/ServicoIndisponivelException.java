@@ -1,4 +1,4 @@
-package vinix.services.exceptions;
+package vinix.exceptions;
 
 public class ServicoIndisponivelException extends RuntimeException {
   public ServicoIndisponivelException(String message) {

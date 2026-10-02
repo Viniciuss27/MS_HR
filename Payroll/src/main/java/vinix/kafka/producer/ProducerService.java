@@ -4,9 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-import vinix.kafka.events.PaymentCanceledEvent;
-import vinix.kafka.events.PaymentCreatedEvent;
-import vinix.kafka.events.PaymentRefundRequestedEvent;
+import vinix.kafka.events.producer.PaymentCanceledEvent;
+import vinix.kafka.events.producer.PaymentCreatedEvent;
+import vinix.kafka.events.producer.PaymentRefundRequestedEvent;
 
 @Slf4j
 @Service

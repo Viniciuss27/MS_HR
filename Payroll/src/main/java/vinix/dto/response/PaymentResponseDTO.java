@@ -13,6 +13,7 @@ public record PaymentResponseDTO(
     String employeeName,
     BigDecimal grossAmount,
     PaymentStatus status,
+    Long vacationRequestId,
     PaymentType type,
     LocalDate referenceDate
 ) {}
