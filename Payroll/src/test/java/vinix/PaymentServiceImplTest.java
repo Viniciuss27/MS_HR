@@ -34,8 +34,8 @@ import vinix.kafka.producer.ProducerService;
 import vinix.mapper.PaymentMapper;
 import vinix.repositories.PaymentRepository;
 import vinix.services.PaymentServiceImpl;
-import vinix.services.exceptions.ResourceNotFoundException;
-import vinix.services.exceptions.ServicoIndisponivelException;
+import vinix.exceptions.ResourceNotFoundException;
+import vinix.exceptions.ServicoIndisponivelException;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PaymentServiceImplTest")
@@ -57,7 +57,7 @@ class PaymentServiceImplTest {
         .employeeName("João").grossAmount(new BigDecimal("3000.00")).build();
 
     PaymentResponseDTO dto = new PaymentResponseDTO(1L,10L,"João",
-        new BigDecimal("3000.00"), PaymentStatus.PENDING, PaymentType.SALARY, LocalDate.now());
+        new BigDecimal("3000.00"), PaymentStatus.PENDING, 1l, PaymentType.SALARY, LocalDate.now());
 
     when(repository.findAll()).thenReturn(List.of(payment));
     when(mapper.toDTO(payment)).thenReturn(dto);
@@ -79,7 +79,7 @@ class PaymentServiceImplTest {
     Payment payment = Payment.builder().id(1L).employeeId(10L).employeeName("João").build();
 
     PaymentResponseDTO dto = new PaymentResponseDTO(1L, 10L, "João",
-        BigDecimal.ZERO, PaymentStatus.PENDING, PaymentType.SALARY, LocalDate.now());
+        BigDecimal.ZERO, PaymentStatus.PENDING, 1l, PaymentType.SALARY, LocalDate.now());
 
     when(repository.findById(1L)).thenReturn(Optional.of(payment));
     when(mapper.toDTO(payment)).thenReturn(dto);
@@ -114,7 +114,7 @@ class PaymentServiceImplTest {
     Payment payment = Payment.builder().id(1L).employeeId(10L).employeeName("João").build();
 
     PaymentResponseDTO dto = new PaymentResponseDTO(1L, 10L, "João", BigDecimal.ZERO,
-        PaymentStatus.PENDING, PaymentType.SALARY, LocalDate.now());
+        PaymentStatus.PENDING, 1l, PaymentType.SALARY, LocalDate.now());
 
     when(feign.findById(10L, "oi")).thenReturn(ResponseEntity.ok(worker));
     when(repository.findByEmployeeId(10L)).thenReturn(List.of(payment));
@@ -170,7 +170,7 @@ class PaymentServiceImplTest {
         .status(PaymentStatus.PENDING).type(PaymentType.SALARY).build();
 
     PaymentResponseDTO response = new PaymentResponseDTO(1L, 10L, "João",
-        new BigDecimal("3000.00"), PaymentStatus.PENDING, PaymentType.SALARY, request.referenceDate());
+        new BigDecimal("3000.00"), PaymentStatus.PENDING, 1l, PaymentType.SALARY, request.referenceDate());
 
     when(feign.findById(10L, "oi")).thenReturn(ResponseEntity.ok(worker));
     when(repository.save(any(Payment.class))).thenReturn(savedPayment);
@@ -200,7 +200,7 @@ class PaymentServiceImplTest {
         .status(PaymentStatus.PENDING).type(PaymentType.THIRTEENTH).build();
 
     PaymentResponseDTO response = new PaymentResponseDTO(2L, 10L, "João", new BigDecimal("3000.00"),
-        PaymentStatus.PENDING, PaymentType.THIRTEENTH, request.referenceDate());
+        PaymentStatus.PENDING, 1l, PaymentType.THIRTEENTH, request.referenceDate());
 
     when(feign.findById(10L, "oi")).thenReturn(ResponseEntity.ok(worker));
     when(repository.save(any(Payment.class))).thenReturn(savedPayment);
@@ -230,7 +230,7 @@ class PaymentServiceImplTest {
         .status(PaymentStatus.PENDING).type(PaymentType.VACATION).build();
 
     PaymentResponseDTO response = new PaymentResponseDTO(3L, 10L, "João",
-        new BigDecimal("3000.00"), PaymentStatus.PENDING, PaymentType.VACATION, request.referenceDate());
+        new BigDecimal("3000.00"), PaymentStatus.PENDING, 1l, PaymentType.VACATION, request.referenceDate());
 
     when(feign.findById(10L, "oi")).thenReturn(ResponseEntity.ok(worker));
     when(repository.save(any(Payment.class))).thenReturn(savedPayment);
@@ -254,7 +254,7 @@ class PaymentServiceImplTest {
     Payment payment = Payment.builder().id(1L).status(PaymentStatus.PENDING).build();
 
     PaymentResponseDTO response = new PaymentResponseDTO(1L, 10L, "João",
-        BigDecimal.ZERO, PaymentStatus.PAID, PaymentType.SALARY, LocalDate.now());
+        BigDecimal.ZERO, PaymentStatus.PAID, 1l, PaymentType.SALARY, LocalDate.now());
 
     when(repository.findById(1L)).thenReturn(Optional.of(payment));
     when(repository.save(payment)).thenReturn(payment);
@@ -289,7 +289,7 @@ class PaymentServiceImplTest {
     Payment payment = Payment.builder().id(1L).status(PaymentStatus.PENDING).build();
 
     PaymentResponseDTO response = new PaymentResponseDTO(1L, 10L, "João",
-        BigDecimal.ZERO, PaymentStatus.CANCELED, PaymentType.SALARY, LocalDate.now());
+        BigDecimal.ZERO, PaymentStatus.CANCELED, 1l, PaymentType.SALARY, LocalDate.now());
 
     when(repository.findById(1L)).thenReturn(Optional.of(payment));
     when(repository.save(payment)).thenReturn(payment);
@@ -314,7 +314,7 @@ class PaymentServiceImplTest {
     Payment payment = Payment.builder().id(1L).status(PaymentStatus.PAID).build();
 
     PaymentResponseDTO response = new PaymentResponseDTO(1L, 10L, "João",
-        BigDecimal.ZERO, PaymentStatus.CANCELED, PaymentType.SALARY, LocalDate.now());
+        BigDecimal.ZERO, PaymentStatus.CANCELED, 1l, PaymentType.SALARY, LocalDate.now());
 
     when(repository.findById(1L)).thenReturn(Optional.of(payment));
     when(repository.save(payment)).thenReturn(payment);
@@ -356,7 +356,7 @@ class PaymentServiceImplTest {
     when(repository.findById(1L)).thenReturn(Optional.of(payment));
 
     PaymentResponseDTO response = new PaymentResponseDTO(1L, 10L, "João",
-        BigDecimal.ZERO, PaymentStatus.CANCELED, PaymentType.SALARY, LocalDate.now());
+        BigDecimal.ZERO, PaymentStatus.CANCELED, 1l, PaymentType.SALARY, LocalDate.now());
 
     when(mapper.toDTO(payment)).thenReturn(response);
 
@@ -397,10 +397,10 @@ class PaymentServiceImplTest {
         .grossAmount(new BigDecimal("4500.00")).status(PaymentStatus.PENDING).type(PaymentType.SALARY).build();
 
     PaymentResponseDTO dto1 = new PaymentResponseDTO(1L, 1L, "João",
-        new BigDecimal("3000.00"), PaymentStatus.PENDING, PaymentType.SALARY, LocalDate.now());
+        new BigDecimal("3000.00"), PaymentStatus.PENDING, 1l, PaymentType.SALARY, LocalDate.now());
 
     PaymentResponseDTO dto2 = new PaymentResponseDTO(2L, 2L, "Maria",
-        new BigDecimal("4500.00"), PaymentStatus.PENDING, PaymentType.SALARY, LocalDate.now());
+        new BigDecimal("4500.00"), PaymentStatus.PENDING, 2l, PaymentType.SALARY, LocalDate.now());
 
     when(feign.findAllActive("oi")).thenReturn(ResponseEntity.ok(List.of(worker1, worker2)));
     when(repository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));

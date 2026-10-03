@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -43,7 +44,18 @@ public class PaymentResource {
 			return ResponseEntity.ok(service.findByEmployeeId(employeeId));
 		}
 
-		@PostMapping
+	@GetMapping("/vacation-requests/{vacationRequestId}")
+	public ResponseEntity<PaymentResponseDTO> vacationRequestId(
+			@PathVariable Long vacationRequestId) {
+		return ResponseEntity.ok(service.vacationRequestId(vacationRequestId));
+	}
+
+	@GetMapping("/vacation-requests")
+	public ResponseEntity<List<PaymentResponseDTO>> vacationRequestAll() {
+		return ResponseEntity.ok(service.vacationRequestAll());
+	}
+
+	@PostMapping
 		public ResponseEntity<PaymentResponseDTO> create(
 				@RequestBody @Valid PaymentRequestDTO dto, UriComponentsBuilder uriBuilder) {
 
