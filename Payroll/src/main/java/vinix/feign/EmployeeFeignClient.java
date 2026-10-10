@@ -19,7 +19,7 @@ public interface EmployeeFeignClient {
 	ResponseEntity<EmployeeDTO> findById(@PathVariable Long id,
 	  @RequestHeader("Authorization") String authorization);
 
-	@GetMapping
+	@GetMapping(value = "/salary/active")
 	ResponseEntity<List<EmployeeDTO>> findAllActive(
 			@RequestHeader("Authorization") String authorization);
 }

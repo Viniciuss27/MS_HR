@@ -11,4 +11,5 @@ import java.util.List;
 public interface VacationRepository extends JpaRepository<VacationRequest, Long> {
   List<VacationRequest> findByEmployeeAndAcquisitionStartDateAndStatusIn(
       Employee employee, LocalDate acquisitionStartDate, List<VacationStatus> statuses);
+  List<VacationRequest> findByEmployeeId(Long employeeId);
 }

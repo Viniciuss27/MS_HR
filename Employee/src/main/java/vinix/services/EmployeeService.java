@@ -14,22 +14,32 @@ import java.util.List;
 
 public interface EmployeeService {
 
+    @PreAuthorize("hasRole('HR')")
     EmployeeResponseDTO findById(Long id);
 
+    @PreAuthorize("isAuthenticated()")
+    EmployeeDetailsResponseDTO findMe();
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
     EmployeeSalaryResponseDTO findSalaryById(Long id);
 
+    @PreAuthorize("isAuthenticated()")
     List<EmployeeResponseDTO> findAll();
 
-    EmployeeDetailsResponseDTO findByCpf(String cpf);
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
+    List<EmployeeSalaryResponseDTO> findAllActiveSalary();
 
-    @PreAuthorize("hasRole('HR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
     List<EmployeeResponseDTO> findAllActive();
 
-    @PreAuthorize("hasRole('HR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
     List<EmployeeResponseDTO> findAllInactive();
 
     @PreAuthorize("isAuthenticated()")
     VacationResponseDTO vacationRequest(VacationRequestDTO dto);
+
+    @PreAuthorize("isAuthenticated()")
+    List<VacationResponseDTO> findMyVacations();
 
     @PreAuthorize("hasAnyRole('HR', 'MANAGER')")
     VacationResponseDTO vacationApprove(Long id);

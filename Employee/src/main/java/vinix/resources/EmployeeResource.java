@@ -42,14 +42,19 @@ public class EmployeeResource {
     return ResponseEntity.ok(service.findSalaryById(id));
   }
 
+  @GetMapping(value = "/me")
+  public ResponseEntity<EmployeeDetailsResponseDTO> findMe() {
+    return ResponseEntity.ok(service.findMe());
+  }
+
   @GetMapping(value = "/{id}")
   public ResponseEntity<EmployeeResponseDTO> findById(@PathVariable Long id) {
     return ResponseEntity.ok(service.findById(id));
   }
 
-  @GetMapping(value = "/cpf/{cpf}")
-  public ResponseEntity<EmployeeDetailsResponseDTO> findByCpf(@PathVariable String cpf) {
-    return ResponseEntity.ok(service.findByCpf(cpf));
+  @GetMapping("/salary/active")
+  public ResponseEntity<List<EmployeeSalaryResponseDTO>> findAllActiveSalary() {
+    return ResponseEntity.ok(service.findAllActiveSalary());
   }
 
   @GetMapping(value = "/active")
@@ -62,22 +67,20 @@ public class EmployeeResource {
     return ResponseEntity.ok(service.findAllInactive());
   }
 
-  @PostMapping("/vacation-requests")
-  public ResponseEntity<VacationResponseDTO> vacationRequest(
-      @RequestBody @Valid VacationRequestDTO dto, UriComponentsBuilder builder) {
+  @GetMapping("/vacation-requests/me")
+  public ResponseEntity<List<VacationResponseDTO>> findMyVacations() {
+    return ResponseEntity.ok(service.findMyVacations());
+  }
 
-    VacationResponseDTO response = service.vacationRequest(dto);
-    URI uri = builder.path("/employees/vacation-requests/{id}").buildAndExpand(response.id()).toUri();
-    return ResponseEntity.created(uri).body(response);
+  @PostMapping("/vacation-requests")
+  public ResponseEntity<VacationResponseDTO> vacationRequest(@RequestBody @Valid VacationRequestDTO dto) {
+    return ResponseEntity.status(HttpStatus.CREATED).body(service.vacationRequest(dto));
   }
 
   @PostMapping("/vacation-requests/{employeeId}")
   public ResponseEntity<VacationResponseDTO> vacationRequestForEmployee(
-      @PathVariable Long employeeId, @RequestBody @Valid VacationRequestDTO dto, UriComponentsBuilder builder) {
-
-    VacationResponseDTO response = service.vacationRequestForEmployee(employeeId, dto);
-    URI uri = builder.path("/employees/vacation-requests/{id}").buildAndExpand(response.id()).toUri();
-    return ResponseEntity.created(uri).body(response);
+      @PathVariable Long employeeId, @RequestBody @Valid VacationRequestDTO dto) {
+    return ResponseEntity.status(HttpStatus.CREATED).body(service.vacationRequestForEmployee(employeeId, dto));
   }
 
   @PostMapping

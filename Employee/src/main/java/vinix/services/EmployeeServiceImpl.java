@@ -4,7 +4,6 @@ import com.sun.jdi.request.DuplicateRequestException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -32,7 +31,6 @@ import vinix.mapper.VacationMapper;
 import vinix.repositories.EmployeeRepository;
 import vinix.exceptions.ActiveException;
 import vinix.exceptions.MinimumAgeException;
-import vinix.exceptions.VacationRuleException;
 import vinix.exceptions.ResourceNotFoundException;
 import vinix.repositories.VacationRepository;
 
@@ -53,39 +51,50 @@ public class EmployeeServiceImpl implements EmployeeService {
   private final VacationMapper  vacationMapper;
   private final ProducerService kafka;
 
-  @Override @Transactional(readOnly = true)
+  @Override
+  @Transactional(readOnly = true)
   public List<EmployeeResponseDTO> findAll() {
     return repository.findAll().stream().map(mapper::toDTO).toList();
   }
 
-  @Override @Transactional(readOnly = true)
+  @Override
+  @Transactional(readOnly = true)
+  public EmployeeDetailsResponseDTO findMe() {
+    return mapper.toDetailsDTO(verificaId(employeeIdAtual()));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public EmployeeResponseDTO findById(Long id) {
+    return mapper.toDTO(verificaId(id));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public EmployeeSalaryResponseDTO findSalaryById(Long id) {
     return mapper.toSalaryDTO(verificaId(id));
   }
 
-  @Override @Transactional(readOnly = true)
-  public EmployeeResponseDTO findById(Long id) {return mapper.toDTO(verificaId(id));}
-
-  @Override @Transactional(readOnly = true)
-  public EmployeeDetailsResponseDTO findByCpf(String cpf) {
-    return mapper.toDetailsDTO(repository.findByCpf(cpf).orElseThrow(() ->
-        new ResourceNotFoundException("CPF não encontrado: " + cpf)));
+  @Override
+  @Transactional(readOnly = true)
+  public List<EmployeeSalaryResponseDTO> findAllActiveSalary() {
+    return repository.findByActive(true).stream().map(mapper::toSalaryDTO).toList();
   }
 
-  @Override @Transactional(readOnly = true)
-  @PreAuthorize("hasRole('HR')")
+  @Override
+  @Transactional(readOnly = true)
   public List<EmployeeResponseDTO> findAllActive() {
     return repository.findByActive(true).stream().map(mapper::toDTO).toList();
   }
 
-  @Override @Transactional(readOnly = true)
-  @PreAuthorize("hasAnyRole('HR')")
+  @Override
+  @Transactional(readOnly = true)
   public List<EmployeeResponseDTO> findAllInactive() {
     return repository.findByActive(false).stream().map(mapper::toDTO).toList();
   }
 
-  @Override @Transactional
-  @PreAuthorize("isAuthenticated()")
+  @Override
+  @Transactional
   public VacationResponseDTO vacationRequest(VacationRequestDTO dto) {
     Long employeeId = employeeIdAtual();
     Employee employee = verificaId(employeeId);
@@ -94,8 +103,14 @@ public class EmployeeServiceImpl implements EmployeeService {
     return vacationMapper.toResponseDTO(salvo);
   }
 
-  @Override @Transactional
-  @PreAuthorize("hasAnyRole('HR', 'MANAGER')")
+  @Override @Transactional(readOnly = true)
+  public List<VacationResponseDTO> findMyVacations() {
+    return vacationRepository.findByEmployeeId(employeeIdAtual())
+        .stream().map(vacationMapper::toResponseDTO).toList();
+  }
+
+  @Override
+  @Transactional
   public VacationResponseDTO vacationApprove(Long id) {
     VacationRequest verificado = verificaVacationId(id);
     validaDecisao(verificado);
@@ -110,8 +125,8 @@ public class EmployeeServiceImpl implements EmployeeService {
     return vacationMapper.toResponseDTO(salvo);
   }
 
-  @Override @Transactional
-  @PreAuthorize("hasAnyRole('HR', 'MANAGER')")
+  @Override
+  @Transactional
   public VacationResponseDTO vacationReject(Long id) {
     VacationRequest verificado = verificaVacationId(id);
     validaDecisao(verificado);
@@ -122,8 +137,8 @@ public class EmployeeServiceImpl implements EmployeeService {
     return vacationMapper.toResponseDTO(salvo);
   }
 
-  @Override @Transactional
-  @PreAuthorize("hasRole('HR')")
+  @Override
+  @Transactional
   public VacationResponseDTO vacationRequestForEmployee(Long employeeId, VacationRequestDTO dto) {
       Employee employee = verificaId(employeeId);
       validaPeriodo(dto);
@@ -131,8 +146,8 @@ public class EmployeeServiceImpl implements EmployeeService {
       return vacationMapper.toResponseDTO(salvo);
     }
 
-  @Override @Transactional
-  @PreAuthorize("hasRole('HR')")
+  @Override
+  @Transactional
   public EmployeeResponseDTO create(EmployeeRequestDTO dto) {
     String cpfLimpo = limparCpf(dto.cpf());
     validaIdade(dto.birthDate());
@@ -146,8 +161,8 @@ public class EmployeeServiceImpl implements EmployeeService {
     return mapper.toDTO(salvo);
   }
 
-  @Override @Transactional
-  @PreAuthorize("hasRole('HR')")
+  @Override
+  @Transactional
   public EmployeeResponseDTO updatePosition(Long id, EmployeePositionRequestDTO dto) {
     Employee employee = verificaId(id);
     String oldPosition = employee.getPosition();
@@ -159,8 +174,8 @@ public class EmployeeServiceImpl implements EmployeeService {
     return mapper.toDTO(salvo);
   }
 
-  @Override @Transactional
-  @PreAuthorize("hasRole('HR')")
+  @Override
+  @Transactional
   public EmployeeResponseDTO activate(Long id) {
     Employee employee = verificaId(id);
     if (employee.getActive()) {
@@ -174,8 +189,8 @@ public class EmployeeServiceImpl implements EmployeeService {
     return mapper.toDTO(ativo);
   }
 
-  @Override @Transactional
-  @PreAuthorize("hasRole('HR')")
+  @Override
+  @Transactional
   public EmployeeResponseDTO deactivate(Long id) {
     Employee employee = verificaId(id);
     if(!employee.getActive()) {
@@ -288,5 +303,6 @@ public class EmployeeServiceImpl implements EmployeeService {
       throw new SaldoInsuficienteException("A data inicial não pode estar no passado");
     }
   }
+
 }
 

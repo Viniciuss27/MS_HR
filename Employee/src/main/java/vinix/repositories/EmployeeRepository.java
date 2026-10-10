@@ -3,6 +3,7 @@ package vinix.repositories;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import vinix.entities.Employee;
+import vinix.entities.VacationRequest;
 
 import java.util.List;
 import java.util.Optional;
