@@ -23,7 +23,7 @@ public interface EmployeeService {
     @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
     EmployeeSalaryResponseDTO findSalaryById(Long id);
 
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
     List<EmployeeResponseDTO> findAll();
 
     @PreAuthorize("hasAnyRole('ADMIN', 'HR')")

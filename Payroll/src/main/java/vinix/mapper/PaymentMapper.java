@@ -20,5 +20,6 @@ public interface PaymentMapper {
   @Mapping(target = "type", ignore = true)
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "updatedAt", ignore = true)
+  @Mapping(target = "vacationRequestId", ignore = true)
   Payment toEntity(PaymentRequestDTO dto);
 }

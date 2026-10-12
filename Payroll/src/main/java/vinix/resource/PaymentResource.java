@@ -39,7 +39,12 @@ public class PaymentResource {
 			return ResponseEntity.ok(service.findById(id));
 		}
 
-	 @GetMapping(value = "/employeeId/{employeeId}")
+ @GetMapping(value = "/me")
+	public ResponseEntity<List<PaymentResponseDTO>> findMyPayments() {
+		return ResponseEntity.ok(service.findMyPayments());
+	}
+
+	@GetMapping(value = "/employeeId/{employeeId}")
 	 public ResponseEntity<List<PaymentResponseDTO>> findByWorkerId(@PathVariable Long employeeId) {
 			return ResponseEntity.ok(service.findByEmployeeId(employeeId));
 		}

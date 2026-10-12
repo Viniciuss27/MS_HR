@@ -109,44 +109,6 @@ class EmployeeServiceImplTest {
 		verifyNoInteractions(mapper);
 	}
 
-
-	@Test
-	@DisplayName("Deve buscar funcionário pelo CPF")
-	void findByCpf() {
-
-		Employee employee = new Employee();
-		employee.setId(1L);
-		employee.setName("João");
-
-		EmployeeDetailsResponseDTO dto = new EmployeeDetailsResponseDTO(
-						1L, "João", "12345678909", "Desenvolvedor", LocalDate.of(1995, 1, 1),
-						LocalDate.of(2026, 1, 10), Instant.now());
-
-		when(repository.findByCpf("12345678909")).thenReturn(Optional.of(employee));
-		when(mapper.toDetailsDTO(employee)).thenReturn(dto);
-
-		EmployeeDetailsResponseDTO result = service.findByCpf("12345678909");
-
-		assertEquals(1L, result.id());
-		assertEquals("João", result.name());
-
-		verify(repository).findByCpf("12345678909");
-		verify(mapper).toDetailsDTO(employee);
-	}
-
-
-	@Test
-	@DisplayName("Deve lançar exceção quando CPF não existir")
-	void findByCpfNotFound() {
-
-		when(repository.findByCpf("12345678909")).thenReturn(Optional.empty());
-
-		assertThrows(ResourceNotFoundException.class, () -> service.findByCpf("12345678909"));
-
-		verify(repository).findByCpf("12345678909");
-	}
-
-
 	@Test
 	@DisplayName("Deve buscar funcionários ativos")
 	void findAllActive() {

@@ -51,7 +51,6 @@ public class PaymentServiceImpl implements PaymentService {
 
   @Override
   @Transactional
-  @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
   public List<PaymentResponseDTO> launchPayroll() {
     ResponseEntity<List<EmployeeDTO>> response = feign.findAllActive(tokenAtual());
 
@@ -92,21 +91,24 @@ public class PaymentServiceImpl implements PaymentService {
 
   @Override
   @Transactional(readOnly = true)
-  @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
+  public List<PaymentResponseDTO> findMyPayments() {
+    return repository.findByEmployeeId(employeeIdAtual()).stream().map(mapper::toDTO).toList();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public List<PaymentResponseDTO> vacationRequestAll() {
     return repository.findByType(PaymentType.VACATION).stream().map(mapper::toDTO).toList();
   }
 
   @Override
   @Transactional(readOnly = true)
-  @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
   public PaymentResponseDTO vacationRequestId(Long vacationRequestId) {
     return mapper.toDTO(verificaPagamentoFerias(vacationRequestId));
   }
 
   @Override
   @Transactional
-  @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
   public PaymentResponseDTO create(PaymentRequestDTO dto) {
     Payment payment = montarPagamento(dto.employeeId(), dto.daysWorked(), dto.referenceDate(), PaymentType.SALARY);
     payment = repository.save(payment);
@@ -117,7 +119,6 @@ public class PaymentServiceImpl implements PaymentService {
 
   @Override
   @Transactional
-  @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
   public PaymentResponseDTO calculate13Salary(PaymentRequestDTO dto) {
     EmployeeDTO employee = validaEmployeeId(dto.employeeId());
     int mesesTrabalhados = calcularMeses13(employee, dto.referenceDate());
@@ -143,7 +144,6 @@ public class PaymentServiceImpl implements PaymentService {
 
   @Override
   @Transactional
-  @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
   public PaymentResponseDTO calculateVacation(PaymentRequestDTO dto) {
     Payment payment = montarPagamento(dto.employeeId(), dto.daysWorked(), dto.referenceDate(), PaymentType.VACATION);
     payment = repository.save(payment);
@@ -154,7 +154,6 @@ public class PaymentServiceImpl implements PaymentService {
 
   @Override
   @Transactional
-  @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
   public PaymentResponseDTO updateStatus(Long id, PaymentStatus status) {
 
     if (status == PaymentStatus.CANCELED) {
@@ -175,7 +174,6 @@ public class PaymentServiceImpl implements PaymentService {
 
   @Override
   @Transactional
-  @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
   public PaymentResponseDTO cancel(Long id) {
     Payment payment = buscarPagamento(id);
 
@@ -269,6 +267,15 @@ public class PaymentServiceImpl implements PaymentService {
   private Payment verificaPagamentoFerias(Long vacationRequestId) {
     return repository.findByVacationRequestId(vacationRequestId).orElseThrow(() ->
         new ResourceNotFoundException(vacationRequestId + " -> Pagamento não encontrado"));
+  }
+
+  private Long employeeIdAtual() {
+    var authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication != null && authentication.getPrincipal() instanceof Jwt jwt
+        && jwt.getClaim("employeeId") instanceof Number number) {
+      return number.longValue();
+    }
+    throw new IllegalStateException("Nenhum usuário autenticado no contexto atual");
   }
 
   private int calcularMeses13(EmployeeDTO dto, LocalDate date) {

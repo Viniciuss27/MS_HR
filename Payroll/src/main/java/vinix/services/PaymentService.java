@@ -9,10 +9,16 @@ import java.util.List;
 
 public interface PaymentService {
 
+  @PreAuthorize("isAuthenticated()")
+  List<PaymentResponseDTO> findMyPayments();
+
+  @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
   PaymentResponseDTO findById(Long id);
 
+  @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
   List<PaymentResponseDTO> findByEmployeeId(Long employeeId);
 
+  @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
   List<PaymentResponseDTO> findAll();
 
   @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
