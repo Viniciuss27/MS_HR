@@ -14,7 +14,7 @@ import vinix.exceptions.VacationRuleException;
 import vinix.kafka.events.EmployeeActivatedEvent;
 import vinix.kafka.events.EmployeeDeactivatedEvent;
 import vinix.kafka.events.EmployeePositionUpdatedEvent;
-import vinix.kafka.producer.ProducerService;
+import vinix.kafka.producer.OutboxService;
 import vinix.mapper.EmployeeMapper;
 import vinix.repositories.EmployeeRepository;
 import vinix.services.EmployeeServiceImpl;
@@ -43,7 +43,7 @@ class EmployeeServiceImplTest {
 
 	@Mock private EmployeeRepository repository;
 	@Mock private EmployeeMapper mapper;
-	@Mock private ProducerService kafka;
+	@Mock private OutboxService kafka;
 
 	@InjectMocks
 	private EmployeeServiceImpl service;
@@ -180,7 +180,7 @@ class EmployeeServiceImplTest {
 		verify(repository).existsByCpf(request.cpf());
 		verify(mapper).toEntity(request);
 		verify(repository).save(employee);
-		verify(kafka).publishEmployeeActivated(any(EmployeeActivatedEvent.class));
+		verify(kafka).saveEmployeeActivated(any(EmployeeActivatedEvent.class));
 		verify(mapper).toDTO(employee);
 	}
 
@@ -244,7 +244,7 @@ class EmployeeServiceImplTest {
 		verify(repository).findById(1L);
 		verify(mapper).updatePosition(request, employee);
 		verify(repository).save(employee);
-		verify(kafka).publishEmployeePositionUpdated(any(EmployeePositionUpdatedEvent.class));
+		verify(kafka).saveEmployeePositionUpdated(any(EmployeePositionUpdatedEvent.class));
 		verify(mapper).toDTO(employee);
 	}
 
@@ -288,7 +288,7 @@ class EmployeeServiceImplTest {
 
 		verify(repository).findById(1L);
 		verify(repository).save(employee);
-		verify(kafka).publishEmployeeActivated(any(EmployeeActivatedEvent.class));
+		verify(kafka).saveEmployeeActivated(any(EmployeeActivatedEvent.class));
 		verify(mapper).toDTO(employee);
 	}
 
@@ -333,7 +333,7 @@ class EmployeeServiceImplTest {
 
 		verify(repository).findById(1L);
 		verify(repository).save(employee);
-		verify(kafka).publishEmployeeDeactivated(any(EmployeeDeactivatedEvent.class));
+		verify(kafka).saveEmployeeDeactivated(any(EmployeeDeactivatedEvent.class));
 		verify(mapper).toDTO(employee);
 	}
 
