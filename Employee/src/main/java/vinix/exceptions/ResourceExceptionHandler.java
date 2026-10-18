@@ -37,15 +37,15 @@ public class ResourceExceptionHandler {
         return ResponseEntity.status(NOT_FOUND).body(err);
     }
 
-    @ExceptionHandler(VacationRuleException.class)
-    public ResponseEntity<StandardError> duplicateError(
-        VacationRuleException e, HttpServletRequest request) {
+    @ExceptionHandler(DuplicateException.class)
+    public ResponseEntity<StandardError> duplicateCpf(
+        DuplicateException e, HttpServletRequest request) {
 
         StandardError err = StandardError.builder()
             .timestamp(Instant.now())
             .status(CONFLICT.value())//409
             .message(e.getMessage())
-            .error("Regra de negócio violada")
+            .error("CPF já cadastrado")
             .path(request.getRequestURI()).build();
 
         return ResponseEntity.status(CONFLICT).body(err);

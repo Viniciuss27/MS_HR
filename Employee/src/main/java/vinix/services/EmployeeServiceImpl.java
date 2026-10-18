@@ -1,6 +1,6 @@
 package vinix.services;
 
-import com.sun.jdi.request.DuplicateRequestException;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
@@ -20,6 +20,8 @@ import vinix.dto.response.VacationResponseDTO;
 import vinix.entities.Employee;
 import vinix.entities.VacationRequest;
 import vinix.entities.VacationStatus;
+import vinix.exceptions.ActiveException;
+import vinix.exceptions.DuplicateException;
 import vinix.exceptions.SaldoInsuficienteException;
 import vinix.kafka.events.EmployeeActivatedEvent;
 import vinix.kafka.events.EmployeeDeactivatedEvent;
@@ -29,7 +31,6 @@ import vinix.kafka.producer.ProducerService;
 import vinix.mapper.EmployeeMapper;
 import vinix.mapper.VacationMapper;
 import vinix.repositories.EmployeeRepository;
-import vinix.exceptions.ActiveException;
 import vinix.exceptions.MinimumAgeException;
 import vinix.exceptions.ResourceNotFoundException;
 import vinix.repositories.VacationRepository;
@@ -221,7 +222,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
   private void validaCPF(String cpf) {
     if(repository.existsByCpf(cpf)){
-      throw new DuplicateRequestException("CPF já existente");
+      throw new DuplicateException("CPF já existente");
     }
   }
 
