@@ -19,7 +19,7 @@ import vinix.feign.EmployeeFeignClient;
 import vinix.kafka.events.producer.PaymentCanceledEvent;
 import vinix.kafka.events.producer.PaymentCreatedEvent;
 import vinix.kafka.events.producer.PaymentRefundRequestedEvent;
-import vinix.kafka.producer.ProducerService;
+import vinix.kafka.producer.OutboxService;
 import vinix.mapper.PaymentMapper;
 import vinix.repositories.PaymentRepository;
 import vinix.exceptions.ResourceNotFoundException;
@@ -41,7 +41,7 @@ public class PaymentServiceImpl implements PaymentService {
   private final EmployeeFeignClient feign;
   private final PaymentMapper mapper;
   private final PaymentRepository repository;
-  private final ProducerService kafka;
+  private final OutboxService outbox;
 
   @Override
   @Transactional(readOnly = true)
@@ -184,7 +184,7 @@ public class PaymentServiceImpl implements PaymentService {
         payment = repository.save(payment);
 
         log.info("Pagamento ID: {} cancelado. Estorno será solicitado ao serviço financeiro!", id);
-        kafka.publishRefundRequestedEvent(
+        outbox.publishRefundRequestedEvent(
             new PaymentRefundRequestedEvent(payment.getId(), payment.getEmployeeId(), payment.getGrossAmount(), Instant.now()));
       }
 
@@ -193,7 +193,7 @@ public class PaymentServiceImpl implements PaymentService {
         payment = repository.save(payment);
         log.info("Pagamento ID: {} cancelado", id);
 
-        kafka.publishCanceledEvent(
+        outbox.publishCanceledEvent(
             new PaymentCanceledEvent(payment.getId(), payment.getEmployeeId(), Instant.now()));
       }
 
@@ -211,7 +211,7 @@ public class PaymentServiceImpl implements PaymentService {
   }
 
   private void publicarCriacao(Payment payment) {
-    kafka.publishCreatedEvent(
+    outbox.publishCreatedEvent(
         new PaymentCreatedEvent(payment.getId(), payment.getEmployeeId(), payment.getEmployeeName(),
             payment.getGrossAmount(), payment.getType(), payment.getReferenceDate(), Instant.now()));
   }
