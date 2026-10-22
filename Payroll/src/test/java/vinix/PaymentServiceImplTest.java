@@ -38,7 +38,7 @@ import vinix.feign.EmployeeFeignClient;
 import vinix.kafka.events.producer.PaymentCanceledEvent;
 import vinix.kafka.events.producer.PaymentCreatedEvent;
 import vinix.kafka.events.producer.PaymentRefundRequestedEvent;
-import vinix.kafka.producer.ProducerService;
+import vinix.kafka.producer.OutboxService;
 import vinix.mapper.PaymentMapper;
 import vinix.repositories.PaymentRepository;
 import vinix.services.PaymentServiceImpl;
@@ -53,7 +53,7 @@ class PaymentServiceImplTest {
   @Mock private EmployeeFeignClient feign;
   @Mock private PaymentMapper mapper;
   @Mock private PaymentRepository repository;
-  @Mock private ProducerService kafka;
+  @Mock private OutboxService outbox;
 
   @InjectMocks
   private PaymentServiceImpl service;
@@ -73,7 +73,7 @@ class PaymentServiceImplTest {
         id, employeeId, name, amount, status, null, type, LocalDate.of(2026, 9, 1));
   }
 
-     // CONSULTAS
+  // CONSULTAS
 
   @Test
   @DisplayName("Deve retornar todos os pagamentos")
@@ -102,6 +102,7 @@ class PaymentServiceImplTest {
     when(mapper.toDTO(payment)).thenReturn(dto);
 
     assertEquals(dto, service.findById(1L));
+    verifyNoInteractions(outbox);
   }
 
   @Test
@@ -110,6 +111,7 @@ class PaymentServiceImplTest {
     when(repository.findById(1L)).thenReturn(Optional.empty());
     assertThrows(ResourceNotFoundException.class, () -> service.findById(1L));
     verify(mapper, never()).toDTO(any());
+    verifyNoInteractions(outbox);
   }
 
   @Test
@@ -126,7 +128,7 @@ class PaymentServiceImplTest {
 
     assertEquals(1, result.size());
     verify(repository).findByEmployeeId(1L);
-    verifyNoInteractions(feign);
+    verifyNoInteractions(feign, outbox);
   }
 
   @Test
@@ -146,6 +148,7 @@ class PaymentServiceImplTest {
     assertEquals(1, result.size());
     assertEquals(dto, result.get(0));
     verify(feign).findById(10L, TOKEN);
+    verifyNoInteractions(outbox);
   }
 
   @Test
@@ -154,6 +157,7 @@ class PaymentServiceImplTest {
     when(feign.findById(10L, TOKEN)).thenReturn(ResponseEntity.notFound().build());
     assertThrows(ResourceNotFoundException.class, () -> service.findByEmployeeId(10L));
     verify(repository, never()).findByEmployeeId(anyLong());
+    verifyNoInteractions(outbox);
   }
 
   @Test
@@ -162,6 +166,7 @@ class PaymentServiceImplTest {
     when(feign.findById(10L, TOKEN)).thenReturn(ResponseEntity.status(SERVICE_UNAVAILABLE).build());
     assertThrows(ServicoIndisponivelException.class, () -> service.findByEmployeeId(10L));
     verify(repository, never()).findByEmployeeId(anyLong());
+    verifyNoInteractions(outbox);
   }
 
   @Test
@@ -194,11 +199,10 @@ class PaymentServiceImplTest {
   @DisplayName("Deve lançar exceção quando não houver pagamento para a solicitação de férias")
   void vacationRequestIdNotFound() {
     when(repository.findByVacationRequestId(42L)).thenReturn(Optional.empty());
-
     assertThrows(ResourceNotFoundException.class, () -> service.vacationRequestId(42L));
   }
 
-       //CREATE
+  //CREATE
 
   @Test
   @DisplayName("Deve criar um pagamento salarial")
@@ -210,7 +214,11 @@ class PaymentServiceImplTest {
         1L, 10L, "João", new BigDecimal("3000.00"), PaymentStatus.PENDING, PaymentType.SALARY);
 
     when(feign.findById(10L, TOKEN)).thenReturn(ResponseEntity.ok(worker));
-    when(repository.save(any(Payment.class))).thenAnswer(i -> i.getArgument(0));
+    when(repository.save(any(Payment.class))).thenAnswer(i -> {
+      Payment payment = i.getArgument(0);
+      if (payment.getId() == null) payment.setId(1L);
+      return payment;
+    });
     when(mapper.toDTO(any(Payment.class))).thenReturn(response);
 
     PaymentResponseDTO result = service.create(request);
@@ -223,7 +231,7 @@ class PaymentServiceImplTest {
     assertEquals(new BigDecimal("3000.00"), saved.getGrossAmount());
     assertEquals(PaymentType.SALARY, saved.getType());
     assertEquals(PaymentStatus.PENDING, saved.getStatus());
-    verify(kafka).publishCreatedEvent(any(PaymentCreatedEvent.class));
+    verify(outbox).saveCreatedEvent(any(PaymentCreatedEvent.class));
   }
 
   @Test
@@ -236,15 +244,18 @@ class PaymentServiceImplTest {
         3L, 10L, "João", new BigDecimal("3000.00"), PaymentStatus.PENDING, PaymentType.VACATION);
 
     when(feign.findById(10L, TOKEN)).thenReturn(ResponseEntity.ok(worker));
-    when(repository.save(any(Payment.class))).thenAnswer(i -> i.getArgument(0));
+    when(repository.save(any(Payment.class))).thenAnswer(i -> {
+      Payment payment = i.getArgument(0);
+      if (payment.getId() == null) payment.setId(1L);
+      return payment;
+    });
+
     when(mapper.toDTO(any(Payment.class))).thenReturn(response);
-
     assertEquals(response, service.calculateVacation(request));
-
-    verify(kafka).publishCreatedEvent(any(PaymentCreatedEvent.class));
+    verify(outbox).saveCreatedEvent(any(PaymentCreatedEvent.class));
   }
 
-       // 13º salário
+  // 13º salário
 
   private Payment calcula13(LocalDate hireDate) {
     PaymentRequestDTO request = new PaymentRequestDTO(
@@ -252,22 +263,27 @@ class PaymentServiceImplTest {
     EmployeeDTO worker = new EmployeeDTO(10L, "João", new BigDecimal("100.00"), hireDate);
 
     when(feign.findById(10L, TOKEN)).thenReturn(ResponseEntity.ok(worker));
-    when(repository.save(any(Payment.class))).thenAnswer(i -> i.getArgument(0));
+    when(repository.save(any(Payment.class))).thenAnswer(i -> {
+      Payment payment = i.getArgument(0);
+      if (payment.getId() == null) payment.setId(1L);
+      return payment;
+    });
+
     when(mapper.toDTO(any(Payment.class))).thenReturn(
         dto(2L, 10L, "João", BigDecimal.ZERO, PaymentStatus.PENDING, PaymentType.THIRTEENTH));
-
     service.calculate13Salary(request);
 
     ArgumentCaptor<Payment> captor = ArgumentCaptor.forClass(Payment.class);
     verify(repository).save(captor.capture());
+    verify(outbox).saveCreatedEvent(any(PaymentCreatedEvent.class));
     return captor.getValue();
+
   }
 
   @Test
   @DisplayName("13º: ano completo paga 12/12")
   void calculate13SalaryFullYear() {
     Payment saved = calcula13(HIRE_DATE);
-
     assertEquals(12, saved.getDaysWorked());
     assertEquals(new BigDecimal("3000.00"), saved.getGrossAmount());
     assertEquals(PaymentType.THIRTEENTH, saved.getType());
@@ -277,7 +293,6 @@ class PaymentServiceImplTest {
   @DisplayName("13º: admitido em 10/07 trabalhou 22 dias em julho, então conta o mês (6/12)")
   void calculate13SalaryHiredMidJuly() {
     Payment saved = calcula13(LocalDate.of(2026, 7, 10));
-
     assertEquals(6, saved.getDaysWorked());
     assertEquals(new BigDecimal("1500.00"), saved.getGrossAmount());
   }
@@ -286,12 +301,11 @@ class PaymentServiceImplTest {
   @DisplayName("13º: admitido em 20/07 trabalhou só 12 dias em julho, então o mês não conta (5/12)")
   void calculate13SalaryHiredLateJuly() {
     Payment saved = calcula13(LocalDate.of(2026, 7, 20));
-
     assertEquals(5, saved.getDaysWorked());
     assertEquals(new BigDecimal("1250.00"), saved.getGrossAmount());
   }
 
-     // status e cancelamento
+  // status e cancelamento
 
   @Test
   @DisplayName("Deve atualizar o status do pagamento")
@@ -303,20 +317,20 @@ class PaymentServiceImplTest {
     when(repository.findById(1L)).thenReturn(Optional.of(payment));
     when(repository.save(payment)).thenReturn(payment);
     when(mapper.toDTO(payment)).thenReturn(response);
-
     PaymentResponseDTO result = service.updateStatus(1L, PaymentStatus.PAID);
 
     assertEquals(PaymentStatus.PAID, payment.getStatus());
     assertEquals(response, result);
+    verifyNoInteractions(outbox);
   }
 
   @Test
   @DisplayName("Não deve permitir alterar status diretamente para CANCELED")
   void updateStatusCanceled() {
     assertThrows(IllegalArgumentException.class, () -> service.updateStatus(1L, PaymentStatus.CANCELED));
-
     verify(repository, never()).findById(anyLong());
     verify(repository, never()).save(any());
+    verifyNoInteractions(outbox);
   }
 
   @Test
@@ -329,13 +343,12 @@ class PaymentServiceImplTest {
     when(repository.findById(1L)).thenReturn(Optional.of(payment));
     when(repository.save(payment)).thenReturn(payment);
     when(mapper.toDTO(payment)).thenReturn(response);
-
     PaymentResponseDTO result = service.cancel(1L);
 
     assertEquals(PaymentStatus.CANCELED, payment.getStatus());
     assertEquals(response, result);
-    verify(kafka).publishCanceledEvent(any(PaymentCanceledEvent.class));
-    verify(kafka, never()).publishRefundRequestedEvent(any());
+    verify(outbox).saveCanceledEvent(any(PaymentCanceledEvent.class));
+    verify(outbox, never()).saveRefundRequestedEvent(any());
   }
 
   @Test
@@ -348,13 +361,12 @@ class PaymentServiceImplTest {
     when(repository.findById(1L)).thenReturn(Optional.of(payment));
     when(repository.save(payment)).thenReturn(payment);
     when(mapper.toDTO(payment)).thenReturn(response);
-
     PaymentResponseDTO result = service.cancel(1L);
 
     assertEquals(PaymentStatus.CANCELED, payment.getStatus());
     assertEquals(response, result);
-    verify(kafka).publishRefundRequestedEvent(any(PaymentRefundRequestedEvent.class));
-    verify(kafka, never()).publishCanceledEvent(any());
+    verify(outbox).saveRefundRequestedEvent(any(PaymentRefundRequestedEvent.class));
+    verify(outbox, never()).saveCanceledEvent(any());
   }
 
   @Test
@@ -364,6 +376,7 @@ class PaymentServiceImplTest {
     when(repository.findById(1L)).thenReturn(Optional.of(payment));
     assertThrows(IllegalStateException.class, () -> service.cancel(1L));
     verify(repository, never()).save(any());
+    verifyNoInteractions(outbox);
   }
 
   @Test
@@ -375,11 +388,10 @@ class PaymentServiceImplTest {
 
     when(repository.findById(1L)).thenReturn(Optional.of(payment));
     when(mapper.toDTO(payment)).thenReturn(response);
-
     assertEquals(response, service.cancel(1L));
 
     verify(repository, never()).save(any());
-    verifyNoInteractions(kafka);
+    verifyNoInteractions(outbox);
   }
 
   @Test
@@ -388,9 +400,10 @@ class PaymentServiceImplTest {
     when(repository.findById(1L)).thenReturn(Optional.empty());
     assertThrows(ResourceNotFoundException.class, () -> service.cancel(1L));
     verify(repository, never()).save(any());
+    verifyNoInteractions(outbox);
   }
 
-         // folha em lote
+  // folha em lote
 
   @Test
   @DisplayName("Deve lançar a folha de pagamento para todos os funcionários")
@@ -404,16 +417,20 @@ class PaymentServiceImplTest {
         2L, 2L, "Maria", new BigDecimal("4500.00"), PaymentStatus.PENDING, PaymentType.SALARY);
 
     when(feign.findAllActive(TOKEN)).thenReturn(ResponseEntity.ok(List.of(worker1, worker2)));
-    when(repository.save(any(Payment.class))).thenAnswer(i -> i.getArgument(0));
-    when(mapper.toDTO(any(Payment.class))).thenReturn(dto1, dto2);
+    when(repository.save(any(Payment.class))).thenAnswer(i -> {
+      Payment payment = i.getArgument(0);
+      if (payment.getId() == null) payment.setId(1L);
+      return payment;
+    });
 
+    when(mapper.toDTO(any(Payment.class))).thenReturn(dto1, dto2);
     List<PaymentResponseDTO> result = service.launchPayroll();
 
     assertEquals(2, result.size());
     assertEquals(dto1, result.get(0));
     assertEquals(dto2, result.get(1));
     verify(repository, times(2)).save(any(Payment.class));
-    verify(kafka, times(2)).publishCreatedEvent(any(PaymentCreatedEvent.class));
+    verify(outbox, times(2)).saveCreatedEvent(any(PaymentCreatedEvent.class));
   }
 
   @Test
@@ -422,6 +439,7 @@ class PaymentServiceImplTest {
     when(feign.findAllActive(TOKEN)).thenReturn(ResponseEntity.status(SERVICE_UNAVAILABLE).build());
     assertThrows(ServicoIndisponivelException.class, () -> service.launchPayroll());
     verify(repository, never()).save(any());
+    verifyNoInteractions(outbox);
   }
 
   @Test
@@ -430,5 +448,6 @@ class PaymentServiceImplTest {
     when(feign.findAllActive(TOKEN)).thenReturn(ResponseEntity.ok(null));
     assertThrows(ServicoIndisponivelException.class, () -> service.launchPayroll());
     verify(repository, never()).save(any());
+    verifyNoInteractions(outbox);
   }
 }

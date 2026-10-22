@@ -30,6 +30,7 @@ class KafkaConsumerTest {
 
   @Mock
   private PaymentRepository repository;
+
   @InjectMocks
   private KafkaConsumer consumer;
 
@@ -44,12 +45,14 @@ class KafkaConsumerTest {
   @DisplayName("Evento duplicado não gera segundo pagamento")
   void duplicate() {
     when(repository.existsByVacationRequestId(42L)).thenReturn(true);
+
     consumer.vacationApprovedEvent(event());
-    verify(repository, never()).save(any());
+
+    verify(repository, never()).save(any(Payment.class));
   }
 
   @Test
-  @DisplayName("Evento novo gera pagamento de férias com o adicional de 1/3")
+  @DisplayName("Evento novo gera pagamento de férias com adicional de 1/3")
   void newEvent() {
     when(repository.existsByVacationRequestId(42L)).thenReturn(false);
 
@@ -60,9 +63,11 @@ class KafkaConsumerTest {
     Payment saved = captor.getValue();
 
     assertEquals(new BigDecimal("1333.33"), saved.getGrossAmount());
-    assertEquals(LocalDate.of(2026, 11, 9), saved.getReferenceDate()); // 1 dia antes das férias
+    assertEquals(LocalDate.of(2026, 11, 9), saved.getReferenceDate());
     assertEquals(PaymentStatus.PENDING, saved.getStatus());
     assertEquals(PaymentType.VACATION, saved.getType());
     assertEquals(42L, saved.getVacationRequestId());
+    assertEquals(10L, saved.getEmployeeId());
+    assertEquals("João", saved.getEmployeeName());
   }
 }

@@ -3,8 +3,6 @@ package vinix.kafka.producer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,18 +24,18 @@ public class OutboxService {
   private final ObjectMapper mapper;
 
   @Transactional(propagation = Propagation.MANDATORY)
-  public void publishCanceledEvent(PaymentCanceledEvent event) {
-    save(PAYMENT_CANCELED_EVENT, event.paymentId().toString(), event);
+  public void saveCanceledEvent(PaymentCanceledEvent event) {
+    save(PAYMENT_CANCELED_EVENT, event.employeeId().toString(), event);
   }
 
   @Transactional(propagation = Propagation.MANDATORY)
-  public void publishCreatedEvent(PaymentCreatedEvent event) {
-    save(PAYMENT_CREATED_EVENT, event.paymentId().toString(), event);
+  public void saveCreatedEvent(PaymentCreatedEvent event) {
+    save(PAYMENT_CREATED_EVENT, event.employeeId().toString(), event);
   }
 
   @Transactional(propagation = Propagation.MANDATORY)
-  public void publishRefundRequestedEvent(PaymentRefundRequestedEvent event) {
-    save(PAYMENT_REFUND_EVENT, event.paymentId().toString(), event);
+  public void saveRefundRequestedEvent(PaymentRefundRequestedEvent event) {
+    save(PAYMENT_REFUND_EVENT, event.employeeId().toString(), event);
   }
 
   private void save(String topic, String key, Object event) {
@@ -52,5 +50,4 @@ public class OutboxService {
       throw new IllegalStateException("Falha ao serializar o evento para a outbox", e);
     }
   }
-
 }
